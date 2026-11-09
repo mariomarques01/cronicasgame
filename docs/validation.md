@@ -1,5 +1,9 @@
 # Validação executada nesta entrega
 
+## Câmera de terceira pessoa
+
+**64 verificações de integração aprovadas, zero falhas**. Novas verificações cobrem limites verticais, órbita sem rolagem lateral, suavização gradual, acompanhamento vertical amortecido e bloqueio de giro durante o mapa. Importação e exportações Web/Windows release concluídas. Enquadramentos inicial, limite superior e limite inferior foram renderizados e inspecionados no cenário Golden Acres pelo Godot Compatibility. Sensibilidade de mouse usa deslocamento de tela; eventos de mouse emulados por toque são ignorados para evitar aplicação duplicada. Não houve avaliação manual em celular físico.
+
 ## Correção da animação de pulo
 
 Integração headless: **57 verificações aprovadas, zero falhas**. Além dos testes anteriores de missão/física/toque, a cobertura verifica fases de decolagem e ápice sincronizadas com a velocidade vertical, pose mantida em quedas longas, aterrissagem somente no chão, compressão local do quadril e retorno à corrida. Pequenos desníveis não disparam pulo nem agachamento. A translação global continua sendo física; somente a flexão local do quadril é animada.
