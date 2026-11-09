@@ -9,6 +9,12 @@ var touch_running: bool = false
 var touch_jump: bool = false
 var avatar: Node3D
 var respawn_position := Vector3(0, 5, 12)
+const CAMERA_MIN_PITCH := -55.0 * PI / 180.0
+const CAMERA_MAX_PITCH := -8.0 * PI / 180.0
+const CAMERA_DEFAULT_PITCH := -20.0 * PI / 180.0
+const CAMERA_FOCUS := Vector3(0, 1.6, 0)
+var camera_yaw := 0.0
+var camera_pitch := CAMERA_DEFAULT_PITCH
 
 func _ready() -> void:
 	var shape := CollisionShape3D.new()
@@ -22,12 +28,14 @@ func _ready() -> void:
 	avatar.set_script(preload("res://scripts/player/imported_bunny.gd"))
 	add_child(avatar)
 	yaw = Node3D.new()
-	yaw.position.y = 1.6
 	add_child(yaw)
+	# Follow translation independently so jumping does not jerk the entire view.
+	yaw.top_level = true
+	yaw.global_position = global_position + CAMERA_FOCUS
 	pitch = SpringArm3D.new()
-	pitch.spring_length = 7.0
-	pitch.rotation.x = -0.25
-	pitch.margin = 0.2
+	pitch.spring_length = 6.5
+	pitch.rotation.x = CAMERA_DEFAULT_PITCH
+	pitch.margin = 0.25
 	var camera_shape := SphereShape3D.new()
 	camera_shape.radius = 0.2
 	pitch.shape = camera_shape
@@ -36,15 +44,37 @@ func _ready() -> void:
 	camera = Camera3D.new()
 	camera.current = true
 	camera.far = 450
+	camera.fov = 65.0
+	camera.near = 0.15
 	pitch.add_child(camera)
 
 func rotate_camera(motion: Vector2) -> void:
-	yaw.rotation.y -= motion.x * 0.003
-	pitch.rotation.x = clampf(pitch.rotation.x - motion.y * 0.003, -1.1, 0.55)
+	if not enabled or not camera.current:
+		return
+	camera_yaw = wrapf(camera_yaw - motion.x * 0.0022, -PI, PI)
+	camera_pitch = clampf(camera_pitch - motion.y * 0.0018, CAMERA_MIN_PITCH, CAMERA_MAX_PITCH)
+
+func _process(delta: float) -> void:
+	if not enabled or not camera.current:
+		return
+	update_camera(delta)
+
+func update_camera(delta: float) -> void:
+	var rotation_weight := 1.0 - exp(-16.0 * delta)
+	yaw.rotation = Vector3(0, lerp_angle(yaw.rotation.y, camera_yaw, rotation_weight), 0)
+	pitch.rotation = Vector3(lerpf(pitch.rotation.x, camera_pitch, rotation_weight), 0, 0)
+	var focus := global_position + CAMERA_FOCUS
+	if yaw.global_position.distance_to(focus) > 15.0:
+		yaw.global_position = focus
+	else:
+		var horizontal_weight := 1.0 - exp(-22.0 * delta)
+		yaw.global_position.x = lerpf(yaw.global_position.x, focus.x, horizontal_weight)
+		yaw.global_position.z = lerpf(yaw.global_position.z, focus.z, horizontal_weight)
+		yaw.global_position.y = lerpf(yaw.global_position.y, focus.y, 1.0 - exp(-8.0 * delta))
 
 func _unhandled_input(event: InputEvent) -> void:
-	if enabled and event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		rotate_camera(event.relative)
+	if enabled and event is InputEventMouseMotion and event.device != InputEvent.DEVICE_ID_EMULATION and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		rotate_camera(event.screen_relative)
 
 func _physics_process(delta: float) -> void:
 	if not enabled:

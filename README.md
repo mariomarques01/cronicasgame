@@ -16,6 +16,8 @@ Abra `project.godot` na Godot 4.6.3 e pressione **F6** na cena principal ou **F5
 - E: interagir; I: inventário; Esc: pausa e opções.
 - F5 durante o jogo: salvar; F9: carregar.
 
+A câmera usa órbita de terceira pessoa: mouse ou arrasto giram ao redor do personagem com suavização, sensibilidade reduzida e horizonte nivelado. A inclinação fica entre 8° e 55° para baixo, impedindo passar por baixo do personagem. O acompanhamento vertical amortece os saltos; colisões aproximam a câmera de obstáculos. O mapa aéreo bloqueia o giro da câmera do personagem.
+
 Converse com **Lia**, perto da casa. Recolha os três objetos com pilares azuis: perto do moinho, da oficina e da passagem norte. Retorne a Lia e use o obelisco dourado junto ao portão norte. A barreira desaparece e permite explorar o início da floresta e sua árvore ancestral. A abertura salva automaticamente. Há também salvamento manual; sair não salva automaticamente.
 
 `user://eldervale_v1.json` guarda posição, inventário, pedras, etapa da missão e região desbloqueada. No navegador, o armazenamento é local ao navegador/origem; use o mesmo endereço e permita armazenamento persistente. Não remova os dados do site para manter o progresso.

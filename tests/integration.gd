@@ -154,13 +154,37 @@ func run() -> void:
 	look_drag.position = Vector2(690, 110)
 	look_drag.relative = Vector2(40, 10)
 	world.get_viewport().push_input(look_drag, true)
+	world.player.update_camera(1.0 / 60.0)
 	check(world.player.yaw.rotation.y != yaw_before, "Arrasto direito gira a câmera")
 	look.pressed = false
 	world.get_viewport().push_input(look, true)
 	world.toggle_map()
 	check(world.map_camera.current, "Mapa aéreo ativado")
+	var map_yaw: float = world.player.camera_yaw
+	world.player.rotate_camera(Vector2(100, 100))
+	check(is_equal_approx(world.player.camera_yaw, map_yaw), "Mapa bloqueia giro da câmera do personagem")
 	world.toggle_map()
 	check(world.player.camera.current, "Retorno à câmera do personagem")
+	world.player.rotate_camera(Vector2(0, -100000))
+	world.player.update_camera(1.0)
+	check(is_equal_approx(world.player.pitch.rotation.x, world.player.CAMERA_MAX_PITCH) and world.player.pitch.rotation.x < 0, "Inclinação superior mantém câmera acima do personagem")
+	world.player.rotate_camera(Vector2(0, 100000))
+	world.player.update_camera(1.0)
+	check(is_equal_approx(world.player.pitch.rotation.x, world.player.CAMERA_MIN_PITCH), "Inclinação inferior limitada sem visão vertical livre")
+	world.player.rotate_camera(Vector2(100000, 0))
+	world.player.update_camera(0.02)
+	check(is_zero_approx(world.player.yaw.rotation.x) and is_zero_approx(world.player.yaw.rotation.z) and is_zero_approx(world.player.pitch.rotation.y) and is_zero_approx(world.player.pitch.rotation.z), "Órbita mantém horizonte sem rolagem lateral")
+	var previous_angle: float = world.player.yaw.rotation.y
+	world.player.rotate_camera(Vector2(80, 0))
+	check(is_equal_approx(world.player.yaw.rotation.y, previous_angle), "Mouse define alvo sem giro instantâneo")
+	world.player.update_camera(0.016)
+	check(not is_equal_approx(world.player.yaw.rotation.y, previous_angle), "Suavização aplica giro progressivamente")
+	var focus_before: Vector3 = world.player.yaw.global_position
+	world.player.position.y += 1.0
+	world.player.update_camera(0.016)
+	check(world.player.yaw.global_position.y > focus_before.y and world.player.yaw.global_position.y < world.player.global_position.y + 1.6, "Seguimento vertical amortece salto")
+	world.player.position.y -= 1.0
+	world.player.camera_pitch = world.player.CAMERA_DEFAULT_PITCH
 	var valid: Variant = JSON.parse_string(FileAccess.get_file_as_string(game.SAVE_PATH))
 	valid.collected.append("stone_0")
 	check(not game.valid_save(valid), "Rejeita coleta duplicada no save")
