@@ -24,6 +24,18 @@ func run() -> void:
 	await physics_frame
 	check(world.player.avatar.get_node_or_null("BraveBunny") != null, "Modelo principal fornecido instanciado")
 	check(world.player.camera != null, "Terceira pessoa e câmera criadas")
+	world.player.enabled = false
+	world.player.avatar.animate(0, true, false)
+	for i in range(5):
+		await process_frame
+	check(world.player.avatar.animation_player.current_animation == "Walking" and world.player.avatar.animation_player.current_animation_position > 0, "Caminhada animada avança no tempo")
+	world.player.avatar.animate(0, true, true)
+	check(world.player.avatar.animation_player.current_animation == "Running", "Corrida seleciona Running")
+	world.player.avatar.animate(0, true, true, false)
+	check(not world.player.avatar.animation_player.is_playing(), "No ar suspende ciclo de corrida")
+	world.player.avatar.animate(0, false, false)
+	check(not world.player.avatar.animation_player.is_playing(), "Parado mantém pose estática")
+	world.player.enabled = true
 	check(InputMap.has_action("jump") and InputMap.has_action("interact"), "Input Map configurado")
 	check(not game.collect("stone_0"), "Pedras bloqueadas antes da conversa")
 	check(not game.activate_gate(), "Portão bloqueado antes da missão")

@@ -64,7 +64,7 @@ func _physics_process(delta: float) -> void:
 	touch_jump = false
 	if direction.length() > 0.1:
 		avatar.rotation.y = lerp_angle(avatar.rotation.y, atan2(-direction.x, -direction.z), delta * 12)
-	avatar.animate(delta, axis.length() > 0.1, speed > 5)
+	avatar.animate(delta, axis.length() > 0.1, speed > 5, is_on_floor() and velocity.y <= 0)
 	move_and_slide()
 	position.x = clampf(position.x, -125, 125)
 	position.z = clampf(position.z, -125, 125)

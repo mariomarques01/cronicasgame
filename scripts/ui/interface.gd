@@ -96,6 +96,7 @@ func clear_menu(title: String) -> void:
 	content.add_child(label(title, 30))
 	menu.show()
 	world.player.enabled = false
+	world.player.avatar.animate(0, false, false)
 	if is_instance_valid(touch):
 		touch.reset()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
