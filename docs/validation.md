@@ -12,3 +12,7 @@ Ambiente: Linux, Godot 4.6.3 oficial. Não foi usado o PC de referência nem Win
 Correções durante os testes: tipagem explícita da cena no teste; comparação numérica compatível com JSON no inventário; parser de save inválido com retorno controlado; extração dos templates Web sem threads corretos; redução de polígonos das árvores repetidas para reduzir custo de renderização; âncoras do menu e contorno dos textos para legibilidade.
 
 Não foi validado: 60 FPS/1080p, VRAM, gamepad, campanha completa, restante das regiões, agricultura, reparos, combate ou fidelidade realista. Esses recursos não são apresentados como concluídos.
+
+## CI e verificação visual final
+
+O workflow da PR #1, execução `42554826410`, concluiu com sucesso: instalação, importação, 25 verificações, exportação Web e Windows e upload dos artefatos. O deploy é executado apenas em `main`. Captura adicional confirmou o menu de pausa visível e seus botões. O contorno dos textos foi acrescentado depois das capturas armazenadas para melhorar leitura sobre o terreno.
