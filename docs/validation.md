@@ -1,5 +1,13 @@
 # Validação executada nesta entrega
 
+## Correção da publicação Pages e densidade da floresta
+
+A execução `42653222998` concluiu o build em 2m03s e falhou na publicação após 10m07s, com `Timeout reached, aborting!`. O limite do deploy foi ampliado para 20 minutos, com limite do job de 30 minutos. Isso corrige o limite observado; a confirmação da publicação depende da próxima execução remota.
+
+Os presets agora selecionam explicitamente os recursos de execução, incluindo scripts e JSON carregados dinamicamente, deixando fora fontes e cenas de teste não utilizadas. Texturas acima de 2048 px usam esse limite de importação, preservando os arquivos originais. O pacote Web passou de aproximadamente 373 MiB para 146 MiB. Os 120 testes de integração continuam aprovados; Web e Windows foram exportados novamente.
+
+Um teste adicional executa o próprio pacote Web em um diretório vazio, validando os modelos, os dados JSON, o início do jogo e a missão até a abertura do portão. Essa checagem foi adicionada ao workflow antes do upload. A floresta externa passou de 313 para 157 árvores, mantendo os quatro pinheiros internos e o marco ancestral.
+
 ## Moinho, celeiro e oficina fornecidos
 
 **120 verificações aprovadas, zero falhas**. Cobertura dos três elementos independentes, materiais fornecidos, malhas otimizadas, remoção das construções antigas da malha/colisão fundida e correspondência entre colisões e novos modelos. Acessos às pedras antigas perto da oficina e do moinho continuam livres, assim como as entradas da fazenda. Preservação da vegetação fora das áreas substituídas verificada por assinaturas de geometria e UVs. As hélices são testadas separadamente: 120 s por volta, torre/eixo fixos, ciclo contínuo, pausa e geometria sem duplicação.

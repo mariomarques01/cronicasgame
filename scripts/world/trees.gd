@@ -26,6 +26,7 @@ func _ready() -> void:
 	# Reuse the previous forest's seed, positions and exclusion of the quest path.
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7421
+	var exterior_index := 0
 	for i in range(380):
 		var x := rng.randf_range(-122, 122)
 		var z := rng.randf_range(-122, 122)
@@ -35,6 +36,10 @@ func _ready() -> void:
 			continue
 		var variation := rng.randf_range(0.8, 1.5)
 		var inside := is_inside(Vector2(x, z))
+		if not inside:
+			exterior_index += 1
+			if exterior_index % 2 == 0:
+				continue
 		add_tree(world.ground(x, z), (12.0 if inside else 8.0) * variation, inside)
 	# The quest landmark uses the same supplied exterior tree, at a larger scale.
 	add_tree(world.ground(0, -94), 24.0, false)

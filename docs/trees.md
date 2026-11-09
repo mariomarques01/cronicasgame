@@ -5,7 +5,7 @@ Fontes originais preservadas sem alterações:
 - `pinheiro 3d model.glb` → `assets/models/farm_pine.glb`.
 - `arvore 3d model.glb` → `assets/models/forest_tree.glb`.
 
-`scripts/world/trees.gd` usa o polígono formado pelos trechos `outer_west` e `outer_east` do cercado. A classificação considera o ponto de implantação do tronco, e não uma caixa retangular ou a extensão da copa. Há **4 pinheiros internos e 313 árvores externas**, incluindo a substituição do marco ancestral por uma versão maior do mesmo modelo exterior.
+`scripts/world/trees.gd` usa o polígono formado pelos trechos `outer_west` e `outer_east` do cercado. A classificação considera o ponto de implantação do tronco, e não uma caixa retangular ou a extensão da copa. Há **4 pinheiros internos e 157 árvores externas**, incluindo a substituição do marco ancestral por uma versão maior do mesmo modelo exterior.
 
 Foram substituídas as três árvores fundidas à malha Golden Acres e as árvores procedurais externas. Um dos antigos exemplares procedurais ficava dentro do contorno real do cercado e também usa pinheiro. Os recortes da malha se restringem aos volumes das árvores, incluindo o tronco inclinado do sudoeste; a vegetação baixa restante não é rebaixada nem remodelada. Pisos de raiz fecham o terreno sob os recortes, sem mover as plantas.
 
@@ -24,3 +24,5 @@ As fontes têm cerca de 503 mil triângulos cada. As malhas compartilhadas têm 
 Foram inspecionados os pinheiros no pátio e sudoeste, as árvores externas e a vista aérea. Não houve medição de FPS em aparelho físico.
 
 Capturas: [dentro da fazenda](screenshots/trees-inside.png), [fora do cercado](screenshots/trees-outside.png) e [vista aérea](screenshots/trees-map.png).
+
+A floresta externa conserva um de cada dois exemplares do gerador original (mesma semente e variação); o marco ancestral é mantido. Os quatro pinheiros internos permanecem.
