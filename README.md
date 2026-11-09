@@ -4,6 +4,8 @@ A abertura usa a arte original enviada em `MENU.zip`, preservada em `assets/ui/t
 
 ## Cenário atual: Golden Acres (Meshy)
 
+A casa principal foi substituída pelo modelo Cozy Timber Hearth enviado pelo usuário, preservando suas texturas e com colisão própria. A varanda está voltada para a abertura da cerca e o caminho. A construção antiga foi removida da malha derivada da fazenda, com o solo do pátio recomposto. Veja `docs/main-house.md`.
+
 As cercas internas e externas usam agora o módulo Mossy Garden enviado pelo usuário, com colisões próprias e passagens para circular. As paredes deformadas fundidas à fazenda foram removidas da malha derivada, e o arco da entrada sul deu lugar a um caminho nivelado. Veja `docs/farm-fences.md` para os arquivos e a regeneração dos recursos.
 
 A fazenda jogável usa agora o modelo `assets/models/golden_acres.glb`, fornecido pelo usuário como `Meshy_AI_Golden_Acres_Homestea_1109103804_texture 2_0454.glb`. Substitui as construções, cercas, animais e plantações procedurais anteriores; as texturas do modelo são preservadas. A floresta externa e os elementos da missão continuam disponíveis. A importação gera arquivos de textura junto ao GLB: mantenha-os com suas configurações `.import`.

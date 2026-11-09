@@ -16,6 +16,9 @@ func _ready() -> void:
 	model.scale = Vector3.ONE * MODEL_SCALE
 	model.position = MODEL_OFFSET
 	build_collision(model)
+	var house := Node3D.new()
+	house.set_script(preload("res://scripts/world/main_house.gd"))
+	add_child(house)
 	var fences := Node3D.new()
 	fences.set_script(preload("res://scripts/world/farm_fences.gd"))
 	add_child(fences)

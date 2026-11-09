@@ -1,5 +1,11 @@
 # Validação executada nesta entrega
 
+## Casa principal Cozy Timber Hearth
+
+**91 verificações aprovadas, zero falhas**. Cobertura adicionada para presença do modelo, largura de 24 unidades, malha otimizada, remoção da casa antiga da geometria/colisão fundida, colisão do novo telhado e passagem livre no lado oeste. Os testes existentes de cercas, entradas, missão, salvamento, animações, câmera e toque continuam passando.
+
+Modelo inspecionado isoladamente e integrado ao cenário, com renderizações frontal, lateral e aérea no Godot Compatibility. Exportações Web e Windows release concluídas. A fonte GLB foi preservada sem alterações; derivação com 56.786 triângulos, frente voltada para o caminho e solo do pátio recomposto. Sem medição de FPS em aparelho físico ou execução do binário Windows neste Linux.
+
 ## Substituição das cercas por Mossy Garden
 
 **85 verificações de integração aprovadas, zero falhas**. Cobertura de seções compartilhando malha simplificada, colisões correspondentes, bloqueio pelas novas cercas, abertura das plantações, perímetro externo, acesso norte ao portão, remoção do arco deformado, piso nivelado na entrada sul e remoção dos fragmentos altos junto aos canteiros. O próprio controlador atravessa a entrada sul caminhando por 220 frames de física, sem saltar.
