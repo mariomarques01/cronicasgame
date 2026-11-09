@@ -1,8 +1,10 @@
 # Validação executada nesta entrega
 
-## Animação de pulo do FBX
+## Correção da animação de pulo
 
-Integração headless: **51 verificações aprovadas, zero falhas**. Cobertura adicionada para seleção de Jumping no ar, clipe sem repetição, ausência de translação/escala, movimento efetivo de um osso da perna, continuidade sem reiniciar por frame, retorno à corrida ao aterrissar e acionamento pelo botão de toque. Exportações Web e Windows release concluídas. A adaptação de proporções foi validada funcionalmente; o acabamento visual precisa ser conferido durante o jogo. O executável Windows não foi executado neste Linux.
+Integração headless: **57 verificações aprovadas, zero falhas**. Além dos testes anteriores de missão/física/toque, a cobertura verifica fases de decolagem e ápice sincronizadas com a velocidade vertical, pose mantida em quedas longas, aterrissagem somente no chão, compressão local do quadril e retorno à corrida. Pequenos desníveis não disparam pulo nem agachamento. A translação global continua sendo física; somente a flexão local do quadril é animada.
+
+Sequência de poses renderizada no Godot Compatibility e inspecionada, em `docs/screenshots/jump-phases.png`, sobre um piso de referência: decolagem, subida, ápice, descida, contato e recuperação. Exportações Web e Windows release concluídas. A sequência visual usa trajetória balística controlada; não representa um teste manual completo no navegador/celular. O executável Windows não foi executado neste Linux.
 
 ## Substituição da fazenda por Golden Acres
 

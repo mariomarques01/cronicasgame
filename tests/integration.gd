@@ -45,23 +45,36 @@ func run() -> void:
 	check(animator.current_animation == "Jumping" and animator.is_playing(), "No ar reproduz animação de pulo do FBX")
 	var jump := animator.get_animation("Jumping")
 	check(jump.loop_mode == Animation.LOOP_NONE and jump.get_track_count() >= 20, "Pulo adaptado ao esqueleto sem repetição")
-	var rotation_tracks_only := true
+	var safe_tracks := true
 	for track in jump.get_track_count():
-		rotation_tracks_only = rotation_tracks_only and jump.track_get_type(track) == Animation.TYPE_ROTATION_3D
-	check(rotation_tracks_only, "Animação não altera deslocamento nem proporções do personagem")
+		var kind := jump.track_get_type(track)
+		safe_tracks = safe_tracks and (kind == Animation.TYPE_ROTATION_3D or (kind == Animation.TYPE_POSITION_3D and str(jump.track_get_path(track)).ends_with(":mixamorig_Hips")))
+	check(safe_tracks, "Pulo mantém translação restrita à flexão local do quadril")
 	var skeleton := world.player.avatar.model.find_child("Skeleton3D", true, false) as Skeleton3D
 	var leg := skeleton.find_bone("mixamorig_LeftLeg")
+	world.player.avatar.animate(0.08, true, true, false, 8.0)
 	animator.advance(0.08)
+	check(is_equal_approx(animator.current_animation_position, 0.5), "Decolagem ignora antecipação do FBX")
 	var first_pose := skeleton.get_bone_pose_rotation(leg)
+	world.player.avatar.animate(0.08, true, true, false, 0.0)
 	animator.advance(0.08)
 	check(first_pose.angle_to(skeleton.get_bone_pose_rotation(leg)) > 0.01, "Animação de pulo move os ossos do coelho")
-	var jump_time := animator.current_animation_position
-	world.player.avatar.animate(0, true, true, false)
-	check(is_equal_approx(animator.current_animation_position, jump_time), "Pulo não reinicia a cada frame no ar")
+	check(is_equal_approx(animator.current_animation_position, 0.78), "Pose do ápice acompanha velocidade vertical zero")
+	world.player.avatar.animate(2.0, true, true, false, -30.0)
+	animator.advance(0.08)
+	check(is_equal_approx(animator.current_animation_position, 1.1), "Queda longa segura pose de descida sem aterrissar no ar")
 	world.player.avatar.animate(0, true, true, true)
-	check(animator.current_animation == "Running", "Aterrissagem retoma corrida")
+	check(animator.current_animation == "JumpLanding", "Contato com chão inicia absorção da aterrissagem")
+	animator.advance(0.08)
+	check(skeleton.get_bone_pose_position(skeleton.find_bone("mixamorig_Hips")).y < 0.79, "Flexão de joelhos abaixa quadril na aterrissagem")
+	world.player.avatar.animate(0.25, true, true, true)
+	check(animator.current_animation == "Running", "Após absorver aterrissagem retoma corrida")
 	world.player.avatar.animate(0, false, false)
 	check(not world.player.avatar.animation_player.is_playing(), "Parado mantém pose estática")
+	world.player.avatar.animate(0.03, false, false, false, -0.7)
+	check(animator.assigned_animation == "Walking", "Pequeno desnível não dispara pose de pulo")
+	world.player.avatar.animate(0.02, false, false, true, 0.0)
+	check(animator.assigned_animation == "Walking", "Retorno de pequeno desnível não provoca agachamento")
 	world.player.enabled = true
 	check(InputMap.has_action("jump") and InputMap.has_action("interact"), "Input Map configurado")
 	check(not game.collect("stone_0"), "Pedras bloqueadas antes da conversa")
