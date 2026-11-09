@@ -3,6 +3,8 @@ extends SceneTree
 ## Sources remain unchanged; regenerate the cleared farm and optimized prop meshes.
 func _initialize() -> void:
 	var layout: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_fences.json"))
+	var trees: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_trees.json"))
+	var tree_geometry := preload("res://scripts/world/tree_geometry.gd")
 	var segments: Array = []
 	for path: Dictionary in layout.paths:
 		for i in range(path.points.size() - 1):
@@ -11,6 +13,7 @@ func _initialize() -> void:
 	var original: Mesh = source.find_children("*", "MeshInstance3D", true, false)[0].mesh
 	var cleared := ArrayMesh.new()
 	var changed := 0
+	var removed_tree_faces := 0
 	for surface in original.get_surface_count():
 		var arrays: Array = original.surface_get_arrays(surface).duplicate(true)
 		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
@@ -42,6 +45,9 @@ func _initialize() -> void:
 			var a := old_indices[i]
 			var b := old_indices[i + 1]
 			var c := old_indices[i + 2]
+			if tree_geometry.in_old_tree(vertices[a], trees) or tree_geometry.in_old_tree(vertices[b], trees) or tree_geometry.in_old_tree(vertices[c], trees):
+				removed_tree_faces += 1
+				continue
 			if (vertices[b] - vertices[a]).cross(vertices[c] - vertices[a]).length_squared() > 0.000000000001:
 				indices.append_array(PackedInt32Array([a, b, c]))
 		arrays[Mesh.ARRAY_INDEX] = indices
@@ -54,14 +60,23 @@ func _initialize() -> void:
 			tool.generate_tangents()
 		tool.set_material(original.surface_get_material(surface))
 		tool.commit(cleared)
+	for region: Dictionary in trees.plant_regions:
+		var signature := tree_geometry.plant_signature(cleared, region.bounds, trees)
+		if signature.sha256 != region.baseline.sha256 or signature.triangles != int(region.baseline.triangles):
+			push_error("Plant geometry/UV preservation failed: " + str(region.id))
+			quit(1)
+			return
 	assert(ResourceSaver.save(cleared, "res://assets/models/farm_without_fences.res", ResourceSaver.FLAG_COMPRESS) == OK)
 	print("Farm edited vertices lowered: ", changed)
+	print("Old tree triangles removed: ", removed_tree_faces, "; all plant signatures preserved")
 	source.free()
 	bake_module("res://assets/models/mossy_fence.glb", "res://assets/models/mossy_fence_mobile.res", 4000)
 	bake_module("res://assets/models/cozy_timber_house.glb", "res://assets/models/cozy_timber_house_mobile.res", 40000)
+	bake_module("res://assets/models/farm_pine.glb", "res://assets/models/farm_pine_mobile.res", 5000, 0.08)
+	bake_module("res://assets/models/forest_tree.glb", "res://assets/models/forest_tree_mobile.res", 5000, 0.08)
 	quit()
 
-func bake_module(source_path: String, output_path: String, minimum_triangles: int) -> void:
+func bake_module(source_path: String, output_path: String, minimum_triangles: int, maximum_error_ratio: float = INF) -> void:
 	var source: Node3D = load(source_path).instantiate()
 	var original: Mesh = source.find_children("*", "MeshInstance3D", true, false)[0].mesh
 	var simplified := ArrayMesh.new()
@@ -73,7 +88,7 @@ func bake_module(source_path: String, output_path: String, minimum_triangles: in
 		var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
 		for level in importer.get_surface_lod_count(0):
 			var candidate := importer.get_surface_lod_indices(0, level)
-			if candidate.size() / 3 >= minimum_triangles:
+			if candidate.size() / 3 >= minimum_triangles and importer.get_surface_lod_size(0, level) <= original.get_aabb().size.y * maximum_error_ratio:
 				indices = candidate
 		var remap: Dictionary = {}
 		var used := PackedInt32Array()
