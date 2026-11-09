@@ -1,5 +1,11 @@
 # Validação executada nesta entrega
 
+## Substituição das cercas por Mossy Garden
+
+**85 verificações de integração aprovadas, zero falhas**. Cobertura de seções compartilhando malha simplificada, colisões correspondentes, bloqueio pelas novas cercas, abertura das plantações, perímetro externo, acesso norte ao portão, remoção do arco deformado, piso nivelado na entrada sul e remoção dos fragmentos altos junto aos canteiros. O próprio controlador atravessa a entrada sul caminhando por 220 frames de física, sem saltar.
+
+Inspeção de renderizações em terceira pessoa no início, entrada sul e horta, além de vista aérea do mapa. Exportações Web e Windows release concluídas. A fonte Mossy Garden contém 140.766 triângulos; o módulo compartilhado usado em 192 seções contém 4.394. Não houve medição de FPS em celular físico nem execução do binário Windows neste Linux. Fontes GLB originais preservadas; processamento reproduzível em `tools/bake_farm_fences.gd`.
+
 ## Tela inicial com arte fornecida
 
 **73 verificações de integração aprovadas, zero falhas**. Abertura sem HUD/painel antigo, arte proporcional inteira e área clicável alinhada em retrato/paisagem/desktop, opção Continuar condicionada a salvamento e início da jornada pelo botão da arte. A imagem original de `MENU.zip` é usada sem recriação.

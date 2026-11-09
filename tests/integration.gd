@@ -37,6 +37,33 @@ func run() -> void:
 	check(world.playing and not title.visible and world.ui.hud.visible, "Botão da arte inicia jornada e revela jogo")
 	await physics_frame
 	check(world.get_node_or_null("GoldenAcres") != null, "Fazenda Golden Acres importada no cenário jogável")
+	var fence_layout := world.get_node("GoldenAcres/MossyGardenFences")
+	check(fence_layout.section_count > 100, "Cerca Mossy Garden substitui cercados distribuídos pelo mapa")
+	var fence_batch: MultiMeshInstance3D = fence_layout.get_node("FenceSections")
+	check(fence_batch.multimesh.instance_count == fence_layout.section_count and fence_batch.multimesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3 <= 5000, "Seções compartilham módulo simplificado para celular")
+	var fence_body: StaticBody3D = fence_layout.get_node("MossyFenceCollisions")
+	check(fence_body.get_child_count() == fence_layout.section_count, "Cada seção de cerca tem colisão correspondente")
+	var fence_ray := PhysicsRayQueryParameters3D.create(Vector3(-30, 0.8, 24.75), Vector3(-25, 0.8, 24.75))
+	var fence_hit := world.get_world_3d().direct_space_state.intersect_ray(fence_ray)
+	check(not fence_hit.is_empty() and fence_hit.collider == fence_body, "Nova cerca bloqueia passagem através das tábuas")
+	var field_gate_ray := PhysicsRayQueryParameters3D.create(Vector3(-8, 1.0, 14), Vector3(-8, 1.0, 17))
+	check(world.get_world_3d().direct_space_state.intersect_ray(field_gate_ray).is_empty(), "Abertura da plantação permite atravessar sem colisão antiga")
+	var entry_ray := PhysicsRayQueryParameters3D.create(Vector3(0, 0.8, 35), Vector3(0, 0.8, 48))
+	check(world.get_world_3d().direct_space_state.intersect_ray(entry_ray).is_empty(), "Entrada sul livre do arco antigo deformado")
+	var entry_floor_ray := PhysicsRayQueryParameters3D.create(Vector3(0, 3, 42), Vector3(0, -3, 42))
+	var entry_floor := world.get_world_3d().direct_space_state.intersect_ray(entry_floor_ray)
+	check(not entry_floor.is_empty() and entry_floor.collider.name == "SouthEntranceGround" and absf(entry_floor.position.y - 0.01) < 0.02, "Buraco do arco antigo coberto por caminho com colisão nivelada")
+	var perimeter_ray := PhysicsRayQueryParameters3D.create(Vector3(-53, 0.8, 0), Vector3(-49, 0.8, 0))
+	var perimeter_hit := world.get_world_3d().direct_space_state.intersect_ray(perimeter_ray)
+	check(not perimeter_hit.is_empty() and perimeter_hit.collider == fence_body, "Perímetro externo também usa a nova cerca")
+	var north_ray := PhysicsRayQueryParameters3D.create(Vector3(0, 0.8, -49), Vector3(0, 0.8, -46))
+	check(world.get_world_3d().direct_space_state.intersect_ray(north_ray).is_empty(), "Nova cerca externa preserva acesso ao portão da floresta")
+	var bed_ray := PhysicsRayQueryParameters3D.create(Vector3(-24, 5, 25), Vector3(-24, -3, 25))
+	var bed_hit := world.get_world_3d().direct_space_state.intersect_ray(bed_ray)
+	check(not bed_hit.is_empty() and bed_hit.position.y < 1.0, "Canteiro fundido rebaixado sem parede esticada junto à nova cerca")
+	var garden_edge_ray := PhysicsRayQueryParameters3D.create(Vector3(21.6, 5, 16.45), Vector3(21.6, -3, 16.45))
+	var garden_edge := world.get_world_3d().direct_space_state.intersect_ray(garden_edge_ray)
+	check(not garden_edge.is_empty() and garden_edge.position.y < 0.5, "Borda da horta sem fragmento alto da parede antiga")
 	check(world.crop_positions.is_empty() and not is_instance_valid(world.windmill), "Fazenda procedural anterior substituída")
 	var spawn_ray := PhysicsRayQueryParameters3D.create(world.player.position + Vector3.UP * 10, world.player.position - Vector3.UP * 10)
 	spawn_ray.exclude = [world.player.get_rid()]
@@ -209,6 +236,17 @@ func run() -> void:
 	check(game.stage == 4, "Falha de carga preserva estado atual")
 	DirAccess.remove_absolute(game.SAVE_PATH)
 	check(not game.load_game(), "Arquivo ausente tratado")
+	world.ui.show_play()
+	world.player.position = Vector3(0, 2, 50)
+	world.player.velocity = Vector3.ZERO
+	world.player.camera_yaw = 0.0
+	world.player.yaw.rotation.y = 0.0
+	world.player.touch_axis = Vector2(0, -1)
+	world.player.touch_running = false
+	for i in range(220):
+		await physics_frame
+	world.player.touch_axis = Vector2.ZERO
+	check(world.player.position.z < 36 and world.player.is_on_floor(), "Personagem atravessa entrada sul caminhando sem salto ou parede invisível")
 	if not previous.is_empty():
 		file = FileAccess.open(game.SAVE_PATH, FileAccess.WRITE)
 		file.store_string(previous)

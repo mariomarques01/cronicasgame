@@ -4,6 +4,8 @@ A abertura usa a arte original enviada em `MENU.zip`, preservada em `assets/ui/t
 
 ## Cenário atual: Golden Acres (Meshy)
 
+As cercas internas e externas usam agora o módulo Mossy Garden enviado pelo usuário, com colisões próprias e passagens para circular. As paredes deformadas fundidas à fazenda foram removidas da malha derivada, e o arco da entrada sul deu lugar a um caminho nivelado. Veja `docs/farm-fences.md` para os arquivos e a regeneração dos recursos.
+
 A fazenda jogável usa agora o modelo `assets/models/golden_acres.glb`, fornecido pelo usuário como `Meshy_AI_Golden_Acres_Homestea_1109103804_texture 2_0454.glb`. Substitui as construções, cercas, animais e plantações procedurais anteriores; as texturas do modelo são preservadas. A floresta externa e os elementos da missão continuam disponíveis. A importação gera arquivos de textura junto ao GLB: mantenha-os com suas configurações `.import`.
 
 O modelo recebe escala uniforme de 55 e deslocamento vertical de 9,8 unidades. Uma colisão estática triangular acompanha sua geometria. O coelho começa no caminho oeste; Lia e as pedras foram reposicionadas em caminhos da nova fazenda. O mapa aéreo, controles, missão e salvamentos continuam funcionando. Salvamentos antigos são elevados até a superfície ao carregar. O modelo tem cerca de 360 mil triângulos; desempenho em celulares ainda precisa de medição.

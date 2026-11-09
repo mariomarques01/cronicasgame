@@ -80,9 +80,9 @@ func _ready() -> void:
 	build_interactions()
 	player = CharacterBody3D.new()
 	player.set_script(PlayerScript)
-	player.position = ground(-29, 35, 2)
+	player.position = ground(-29, 33, 2)
 	add_child(player)
-	player.respawn_position = ground(-29, 35, 2)
+	player.respawn_position = ground(-29, 33, 2)
 	map_camera = Camera3D.new()
 	map_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	map_camera.size = 112
@@ -218,7 +218,7 @@ func start_game(load_existing: bool) -> void:
 			return
 	else:
 		Game.reset()
-	player.position = Game.player_position if load_existing else ground(-29, 35, 2)
+	player.position = Game.player_position if load_existing else ground(-29, 33, 2)
 	# Older saves may put the player below the imported landscape.
 	player.position.y = maxf(player.position.y, terrain.height_at(player.position.x, player.position.z) + 1.0)
 	playing = true
