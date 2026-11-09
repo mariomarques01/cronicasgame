@@ -20,3 +20,11 @@ O workflow da PR #1, execução `42554826410`, concluiu com sucesso: instalaçã
 ## Publicação confirmada
 
 A execução da main `42554982855` concluiu **build e deploy com sucesso** no commit de merge `94b4d6f`. A API Pages retornou `build_type: workflow`, `status: built` e a URL https://mariomarques01.github.io/cronicasgame/ respondeu HTTP 200. A falha inicial de ativação pela API não permaneceu como bloqueio após a execução do workflow. Não é necessário ativar Pages novamente.
+
+## Atualização para toque e nova fazenda
+
+Adicionados eventos multitoque: joystick move o CharacterBody3D sem teclado, soltar interrompe, salto aplica velocidade vertical e pausa zera comandos. O teste envia eventos diretamente ao viewport em coordenadas locais; a primeira tentativa usava coordenadas globais sem transformar pela escala da janela e foi corrigida no teste. Chromium emulado a 390×844 mostrou menu, entrada no jogo, movimento com toque e rotação para 844×390 com controles visíveis e canvas ocupando a tela. Não houve teste em iPhone/Safari físico nem medição de FPS. Há aviso de AudioContext antes do primeiro gesto; o protótipo não reproduz áudio.
+
+As referências não fornecem geometria/UVs/texturas de produção. As superfícies adicionadas são PNGs procedurais originais de 256 px (madeira, telhado, pedra, grama, terra, pelo, couro, tecido). O coelho é uma malha composta articulada proceduralmente, não uma reconstrução fiel do personagem da imagem.
+
+Resultado final desta revisão: **32 verificações aprovadas**, incluindo arrasto da câmera por segundo dedo, botão Pular via evento de toque, ida/volta da câmera aérea e os testes anteriores da missão/save. Botões móveis recebem eventos ScreenTouch diretamente, permitindo ações com um segundo dedo enquanto o joystick é usado, sem depender da emulação de mouse de um único toque. Capturas em `docs/screenshots/mobile-portrait.png`, `mobile-landscape.png` e `farm-map.png` documentam a aproximação visual, anterior apenas ao acabamento contínuo das trilhas.

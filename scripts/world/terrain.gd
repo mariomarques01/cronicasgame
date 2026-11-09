@@ -4,7 +4,7 @@ const STEP: int = 4
 @export var seed_value: int = 7421
 
 func height_at(x: float, z: float) -> float:
-	var flatten := smoothstep(18.0, 65.0, Vector2(x, z).length())
+	var flatten := smoothstep(55.0, 95.0, Vector2(x, z).length())
 	return (sin(x * 0.045 + seed_value * 0.001) * cos(z * 0.039) * 5.0 + sin(z * 0.085) * 1.8) * flatten
 
 func _ready() -> void:
@@ -16,8 +16,8 @@ func _ready() -> void:
 				var px: float = x + offset.x
 				var pz: float = z + offset.y
 				surface.set_uv(Vector2(px, pz) / 16.0)
-				var path := absf(px - sin(pz * 0.04) * 4.0) < 2.4 or (absf(pz + 7) < 2 and absf(px) < 25)
-				surface.set_color(Color("968460") if path else Color("507349").lerp(Color("75904e"), (sin(px * 0.3) + 1) * 0.3))
+				var path := absf(Vector2(px / 1.06, pz).length() - 40.0) < 2.8 or (absf(px) < 2.5 and absf(pz) > 9) or (absf(pz - 11) < 2.5 and absf(px) < 36) or (absf(pz + 19) < 2.5 and absf(px) < 37)
+				surface.set_color(Color(1,0,0) if path else Color(0,0,0))
 				surface.add_vertex(Vector3(px, height_at(px, pz), pz))
 	surface.generate_normals()
 	var terrain_mesh := surface.commit()
@@ -27,7 +27,27 @@ func _ready() -> void:
 	mat.vertex_color_use_as_albedo = true
 	mat.vertex_color_is_srgb = true
 	mat.roughness = 0.95
-	visual.material_override = mat
+	var shader := Shader.new()
+	shader.code = """shader_type spatial;
+	uniform sampler2D grass_tex: source_color, repeat_enable;
+	uniform sampler2D dirt_tex: source_color, repeat_enable;
+	varying vec3 world_pos;
+	void vertex(){world_pos=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;}
+	void fragment(){
+		vec2 p=world_pos.xz;
+		float ring=abs(length(vec2(p.x/1.06,p.y))-40.0);
+		float center=max(abs(p.x),9.0-abs(p.y));
+		float south=max(abs(p.y-11.0),abs(p.x)-36.0);
+		float north=max(abs(p.y+19.0),abs(p.x)-37.0);
+		float path=1.0-smoothstep(2.0,3.0,min(ring,min(center,min(south,north))));
+		ALBEDO=mix(texture(grass_tex,UV*8.0).rgb,texture(dirt_tex,UV*8.0).rgb,path);
+		ROUGHNESS=0.95;
+	}"""
+	var terrain_material := ShaderMaterial.new()
+	terrain_material.shader = shader
+	terrain_material.set_shader_parameter("grass_tex",load("res://assets/textures/grass.png"))
+	terrain_material.set_shader_parameter("dirt_tex",load("res://assets/textures/dirt.png"))
+	visual.material_override = terrain_material
 	add_child(visual)
 	var collision := CollisionShape3D.new()
 	collision.shape = terrain_mesh.create_trimesh_shape()

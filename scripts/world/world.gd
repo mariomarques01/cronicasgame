@@ -14,6 +14,9 @@ var playing: bool = false
 var clock: float = 0.3
 var day_speed: float = 0.006
 var nearest: String = ""
+var map_camera: Camera3D
+var windmill: Node3D
+var crop_positions: Array[Dictionary] = []
 
 func material(color: Color, glow: bool = false) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
@@ -79,6 +82,13 @@ func _ready() -> void:
 	player.set_script(PlayerScript)
 	player.position = Vector3(0, 3, 12)
 	add_child(player)
+	map_camera = Camera3D.new()
+	map_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
+	map_camera.size = 112
+	map_camera.keep_aspect = Camera3D.KEEP_WIDTH
+	map_camera.position = Vector3(0, 105, 75)
+	add_child(map_camera)
+	map_camera.look_at(Vector3(0, 0, -2))
 	ui = CanvasLayer.new()
 	ui.set_script(UIScript)
 	ui.world = self
@@ -88,37 +98,24 @@ func _ready() -> void:
 	sync_state()
 
 func build_farm() -> void:
-	box(Vector3(10, 5, 8), ground(-14, 1, 2.5), Color("bfa77d"))
-	var roof := CylinderMesh.new()
-	roof.top_radius = 0
-	roof.bottom_radius = 7.5
-	roof.height = 3
-	roof.radial_segments = 4
-	var roof_node := prop(roof, ground(-14, 1, 6.5), Color("674735"))
-	roof_node.rotation.y = PI / 4
-	box(Vector3(2, 3, 0.15), ground(-14, 5.1, 1.5), Color("4a3528"), false)
-	for x: float in [-17.0, -11.0]:
-		box(Vector3(1.4, 1.4, 0.17), ground(x, 5.15, 3), Color("efca73"), false)
-	box(Vector3(11, 6, 10), ground(18, -6, 3), Color("813e32"))
-	box(Vector3(12, 0.6, 11), ground(18, -6, 6.4), Color("443c32"))
-	box(Vector3(3, 4, 0.2), ground(18, -0.9, 2), Color("483b2c"), false)
-	for x in range(-27, -7, 3):
-		for z in range(17, 28, 3):
-			box(Vector3(2, 0.2, 2), ground(x, z, 0.1), Color("53432b"), false)
-			box(Vector3(0.3, 0.7, 0.3), ground(x, z, 0.5), Color("8caa4b"), false)
-	for x in range(-44, 45, 4):
-		if abs(x) < 5:
-			continue
-		box(Vector3(0.4, 2.4, 0.4), ground(x, -52, 1.2), Color("69563c"))
-		box(Vector3(4.2, 0.3, 0.25), ground(x, -52, 1.4), Color("9e875a"))
-	# Side cliffs keep the locked passage meaningful while retaining a 256 m valley.
-	for side: int in [-1, 1]:
-		box(Vector3(80, 9, 5), ground(side * 86, -52, 3), Color("65705e"))
-	var water := CylinderMesh.new()
-	water.top_radius = 10
-	water.bottom_radius = 10
-	water.height = 0.15
-	prop(water, ground(-36, -19, 0.2), Color("4c93a1"))
+	preload("res://scripts/world/farm.gd").new(self).build()
+	for wheat: bool in [false,true]:
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		var mesh := CylinderMesh.new()
+		mesh.top_radius = 0.06 if wheat else 0.05
+		mesh.bottom_radius = 0.20 if wheat else 0.35
+		mesh.height = 1.4 if wheat else 0.8
+		mesh.radial_segments = 5
+		mm.mesh = mesh
+		var entries: Array = crop_positions.filter(func(p: Dictionary): return p.wheat == wheat)
+		mm.instance_count = entries.size()
+		for i in range(entries.size()):
+			mm.set_instance_transform(i, Transform3D(Basis.IDENTITY, entries[i].pos))
+		var batch := MultiMeshInstance3D.new()
+		batch.multimesh = mm
+		batch.material_override = material(Color("c6a644") if wheat else Color("5b8132"))
+		add_child(batch)
 
 func build_vegetation() -> void:
 	var rng := RandomNumberGenerator.new()
@@ -127,7 +124,7 @@ func build_vegetation() -> void:
 	for i in range(380):
 		var x := rng.randf_range(-122, 122)
 		var z := rng.randf_range(-122, 122)
-		if absf(x) < 32 and z > -55 and z < 38:
+		if absf(x) < 48 and z > -55 and z < 49:
 			continue
 		if absf(x) < 6 or Vector2(x + 36, z + 19).length() < 13:
 			continue
@@ -176,9 +173,9 @@ func build_interactions() -> void:
 	var npc_mesh := CapsuleMesh.new()
 	npc_mesh.radius = 0.45
 	npc_mesh.height = 1.8
-	prop(npc_mesh, ground(-3, 3, 0.9), Color("c7a65b"), true)
-	add_target("lia", "E • Conversar com Lia", ground(-3, 3, 1), "Lia • Guardiã do vale")
-	var positions := [Vector2(25, 9), Vector2(-25, -18), Vector2(9, -34)]
+	prop(npc_mesh, ground(-10, 10, 0.9), Color("c7a65b"), true)
+	add_target("lia", "E • Conversar com Lia", ground(-10, 10, 1), "Lia • Guardiã do vale")
+	var positions := [Vector2(31, -17), Vector2(-33, -15), Vector2(9, -43)]
 	for i in range(3):
 		var pos: Vector2 = positions[i]
 		var mesh := SphereMesh.new()
@@ -222,6 +219,12 @@ func sync_state() -> void:
 	if is_instance_valid(ui):
 		ui.refresh()
 
+func toggle_map() -> void:
+	if map_camera.current:
+		player.camera.make_current()
+	else:
+		map_camera.make_current()
+
 func start_game(load_existing: bool) -> void:
 	if load_existing:
 		if not Game.load_game():
@@ -246,8 +249,12 @@ func interact(id: String) -> void:
 			ui.notify("O mecanismo aguarda as três pedras e a orientação de Lia.")
 
 func _process(delta: float) -> void:
+	if is_instance_valid(map_camera):
+		map_camera.size = maxf(112, 85 * get_viewport().get_visible_rect().size.aspect())
 	if not playing or not player.enabled:
 		return
+	if is_instance_valid(windmill):
+		windmill.rotation.z += delta * 0.35
 	clock = fmod(clock + delta * day_speed, 1.0)
 	sun.rotation.x = -clock * TAU
 	sun.light_energy = maxf(0.12, sin(clock * TAU))

@@ -40,3 +40,11 @@ godot --headless --quit-after 120
 ```
 
 Veja `docs/validation.md`, `docs/architecture.md` e `docs/roadmap.md` para resultados, limites e próximas etapas. Não há promessa de 60 FPS: não houve medição no hardware de referência.
+
+## Atualização: celular e referência da fazenda
+
+No celular: joystick no canto inferior esquerdo (arraste até a borda para correr), arrasto na área direita acima dos botões para girar a câmera, **Pular**, **Interagir**, **Mochila**, **Pausa**. Soltar o dedo ou pausar libera o movimento. A interface se adapta à orientação da tela. O botão **Mapa / voltar** alterna uma vista aérea para conferir a fazenda.
+
+A disposição foi reorganizada conforme a nova referência: casa central, celeiro ao norte, oficina e poço a oeste, curral/silo a nordeste, moinho/horta a leste, depósito a sudoeste, plantações ao sul, ovelhas a sudeste e entrada sul. A passagem da missão continua ao norte.
+
+O protagonista agora é um coelho 3D articulado com orelhas, focinho, lenço vermelho, colete e mochila, com movimento procedural dos membros. As oito texturas de superfície foram geradas por código e estão em `assets/textures`; **não são as texturas originais das imagens**. O mapa e personagem são aproximações estilizadas. Não há modelo realista com pelo, roupas e animações equivalentes à referência. Os animais são decorativos.
