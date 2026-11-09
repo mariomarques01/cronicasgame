@@ -113,6 +113,7 @@ func main_menu() -> void:
 	content.add_child(label("O Segredo da Árvore Celestial", 21))
 	content.add_child(label("Protótipo jogável • Vale da Fazenda", 17))
 	button("Iniciar uma nova jornada", func(): world.start_game(false))
+	button("Ver fazenda 3D colorida", func(): get_tree().change_scene_to_file("res://scenes/world/farm_preview.tscn"))
 	if FileAccess.file_exists(Game.SAVE_PATH):
 		button("Continuar jornada", func(): world.start_game(true))
 	if not OS.has_feature("web"):
