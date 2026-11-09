@@ -43,7 +43,7 @@ func talk() -> String:
 		stage = 1
 		changed.emit()
 		return "Lia • Guardiã do vale
-Três pedras antigas repousam pelo vale. Procure seus brilhos azuis junto ao lago, ao celeiro e à colina. Traga-as e revelarei a passagem."
+Três pedras antigas repousam pelo vale. Procure seus brilhos azuis perto do moinho, da oficina e da passagem norte. Traga-as e revelarei a passagem."
 	if stage == 1:
 		return "Lia
 Siga os pilares de luz azul. Ainda faltam %d pedras." % (3 - collected.size())
