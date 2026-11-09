@@ -13,6 +13,6 @@ Input Map é criado no `_ready` do autoload antes da cena principal, usando cód
 
 O inventário atual contém apenas pedras de missão empilhadas, tem capacidade em espaços e rejeita coleta duplicada. Não há descarte, consumo genérico, comércio ou interface de itens avançada. Lia permanece parada e não utiliza navegação; não há rotina autônoma implementada.
 
-Compatibility foi escolhido para viabilizar WebGL e manter paridade entre os presets. Forward+, PBR com texturas, LOD por malha, streaming, níveis de qualidade completos e otimizações específicas da GTX 1650 são trabalho futuro. Vegetação repetida usa duas MultiMeshes; árvores distantes desaparecem a 190 m, mas não possuem colisão individual. Construções, portão, NPC e árvore ancestral possuem colisões simplificadas.
+Compatibility foi escolhido para viabilizar WebGL e manter paridade entre os presets. Forward+, PBR com texturas, LOD por malha, streaming, níveis de qualidade completos e otimizações específicas da GTX 1650 são trabalho futuro. Vegetação repetida usa duas MultiMeshes; o alcance de visibilidade de 190 m se aplica ao conjunto MultiMesh, sem culling por instância; árvores repetidas não possuem colisão individual. Construções, portão, NPC e árvore ancestral possuem colisões simplificadas.
 
 O menu suspende controle e avanço do ciclo, mas não pausa globalmente SceneTree. O protótipo não tem simulações autônomas que precisem de pausa global. O lago é somente visual, não possui natação nem superfície de água simulada.

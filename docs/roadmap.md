@@ -16,7 +16,7 @@ Metadados em JSON; transições da missão e abertura real do portão; salvament
 Menu inicial, continuar condicional, pausa, mochila, diálogo, objetivo, avisos e opções de sombras/ciclo solar. Sair disponível no desktop. Limites: interface básica, sem menus gráficos completos, layout prioritário 1280×720. Próximo: UI responsiva e acessibilidade.
 
 ## 6 — Validação e distribuição
-Importação, execução headless, integração e exportação Web realizadas. Presets Web/Windows e CI/Pages criados. Consulte validation.md para resultados reais. Ativação administrativa de Pages bloqueada por permissão HTTP 403. Próximo: ativar Pages nas configurações e medir no hardware alvo.
+Importação, execução headless, integração e exportação Web realizadas. Presets Web/Windows e CI/Pages criados. Consulte validation.md para resultados reais. A tentativa inicial de ativação via API retornou HTTP 403; o workflow posterior da main publicou com sucesso e o site respondeu HTTP 200. Próximo: medir no hardware alvo.
 
 ## 7 — Expansão futura
 Não implementada. Estabilizar e melhorar o vale, acrescentar inventário genérico, agricultura e reparos; depois capítulo 1 completo, streaming e progressão por dados. Só então acrescentar as outras regiões conforme game_design.md. Priorizar testes de save e regressão em cada expansão.

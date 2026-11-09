@@ -27,7 +27,7 @@ python -m http.server 8000 --directory build/web
 
 Instale antes os export templates oficiais da versão 4.6.3. Abra http://localhost:8000. Não abra o HTML diretamente com `file://`.
 
-O workflow `.github/workflows/pages.yml` importa, testa, exporta Web e Windows e publica em Pages após alterações em `main`. O dono do repositório deve selecionar **Settings → Pages → Build and deployment → Source: GitHub Actions**. A integração desta sessão recebeu HTTP 403 ao tentar ativar o serviço; a publicação depende dessa configuração. Endereço esperado após deploy bem-sucedido: https://mariomarques01.github.io/cronicasgame/ . Esse endereço não deve ser tratado como publicado antes de o workflow terminar.
+O workflow `.github/workflows/pages.yml` importa, testa, exporta Web e Windows e publica em Pages após alterações em `main`. **Publicado em https://mariomarques01.github.io/cronicasgame/**. O workflow da `main` concluiu build e deploy com sucesso (execução `42554982855`), e o endereço respondeu HTTP 200. A tentativa inicial de ativação pela API retornou 403, mas o deploy posterior concluiu e a API passou a indicar `status: built`. Para configurar uma cópia deste repositório, selecione Settings → Pages → Source: GitHub Actions.
 
 O executável Windows é disponibilizado pelo workflow como artefato `Eldervale-Windows`. Extraia todos os arquivos juntos e execute `Eldervale.exe`.
 
