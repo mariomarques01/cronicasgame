@@ -1,0 +1,54 @@
+name: Validate and publish Eldervale
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Godot 4.6.3 and export templates
+        run: |
+          curl -fsSL -o godot.zip https://github.com/godotengine/godot/releases/download/4.6.3-stable/Godot_v4.6.3-stable_linux.x86_64.zip
+          unzip -q godot.zip -d /tmp/godot
+          sudo mv /tmp/godot/Godot* /usr/local/bin/godot
+          rm godot.zip
+          curl -fsSL -o /tmp/templates.tpz https://github.com/godotengine/godot/releases/download/4.6.3-stable/Godot_v4.6.3-stable_export_templates.tpz
+          unzip -q /tmp/templates.tpz -d /tmp/export
+          mkdir -p ~/.local/share/godot/export_templates/4.6.3.stable
+          mv /tmp/export/templates/* ~/.local/share/godot/export_templates/4.6.3.stable/
+      - run: godot --headless --editor --import --quit
+      - run: godot --headless --script tests/integration.gd
+      - name: Export web and Windows
+        run: |
+          mkdir -p build/web build/windows
+          godot --headless --export-release Web build/web/index.html
+          godot --headless --export-release 'Windows Desktop' build/windows/Eldervale.exe
+          touch build/web/.nojekyll
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Eldervale-Windows
+          path: build/windows
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

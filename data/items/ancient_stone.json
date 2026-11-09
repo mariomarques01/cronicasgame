@@ -1,0 +1,8 @@
+{
+  "id": "ancient_stone",
+  "name": "Pedra antiga",
+  "description": "Uma marca ritual do vale, usada para despertar a passagem da floresta. Não é uma Semente da Origem.",
+  "category": "quest",
+  "stackable": true,
+  "max_stack": 3
+}

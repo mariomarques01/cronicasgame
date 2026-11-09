@@ -1,0 +1,9 @@
+[
+  {"id":"valley","name":"Vale da Fazenda","implemented":true,"initially_unlocked":true},
+  {"id":"forest","name":"Floresta dos Sussurros","implemented":"small_preview","unlock_quest":"forest_call"},
+  {"id":"flower_fields","name":"Campos das Mil Flores","implemented":false},
+  {"id":"caves","name":"Cavernas de Cristal","implemented":false},
+  {"id":"fairy_tale","name":"Bosque dos Contos Perdidos","implemented":false},
+  {"id":"sky_realm","name":"Reino Acima das Nuvens","implemented":false},
+  {"id":"forgotten_realm","name":"Reino Esquecido","implemented":false}
+]
