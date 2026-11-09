@@ -2,7 +2,7 @@
 
 ## Correção da publicação Pages e densidade da floresta
 
-A execução `42653222998` concluiu o build em 2m03s e falhou na publicação após 10m07s, com `Timeout reached, aborting!`. O limite do deploy foi ampliado para 20 minutos, com limite do job de 30 minutos. Isso corrige o limite observado; a confirmação da publicação depende da próxima execução remota.
+A execução `42653222998` concluiu o build em 2m03s e falhou na publicação após 10m07s, com `Timeout reached, aborting!`. O serviço aceita no máximo 10 minutos de deploy; o workflow respeita esse teto, com limite do job de 30 minutos. Após reduzir o pacote, a execução `42659472298` concluiu build e publicação com sucesso: build de 2m29s e deploy de 46s.
 
 Os presets agora selecionam explicitamente os recursos de execução, incluindo scripts e JSON carregados dinamicamente, deixando fora fontes e cenas de teste não utilizadas. Texturas acima de 2048 px usam esse limite de importação, preservando os arquivos originais. O pacote Web passou de aproximadamente 373 MiB para 146 MiB. Os 120 testes de integração continuam aprovados; Web e Windows foram exportados novamente.
 
