@@ -20,7 +20,21 @@ func run() -> void:
 	root.add_child(world)
 	await process_frame
 	check(world.ui.menu.position.x >= 0 and world.ui.menu.position.y >= 0, "Menu posicionado dentro da janela")
-	world.start_game(false)
+	var title: Control = world.ui.title_screen
+	check(title.visible and not world.ui.menu.visible and not world.ui.hud.visible, "Abertura usa arte dedicada sem painel antigo ou HUD")
+	var original_size: Vector2 = title.size
+	for viewport_size: Vector2 in [Vector2(390, 844), Vector2(844, 390), Vector2(1280, 720)]:
+		title.size = viewport_size
+		title.layout_art()
+		var art_rect := Rect2(title.frame.position, title.frame.size)
+		check(Rect2(Vector2.ZERO, viewport_size).encloses(art_rect) and is_equal_approx(title.frame.size.x / title.frame.size.y, 0.75), "Arte inteira sem distorção em " + str(viewport_size))
+		var button_center: Vector2 = title.start_button.get_global_rect().get_center()
+		check(art_rect.has_point(button_center), "Botão clicável acompanha arte em " + str(viewport_size))
+	title.size = original_size
+	title.layout_art()
+	check(title.continue_button.visible == FileAccess.file_exists(game.SAVE_PATH), "Continuar aparece somente com salvamento")
+	title.start_button.pressed.emit()
+	check(world.playing and not title.visible and world.ui.hud.visible, "Botão da arte inicia jornada e revela jogo")
 	await physics_frame
 	check(world.get_node_or_null("GoldenAcres") != null, "Fazenda Golden Acres importada no cenário jogável")
 	check(world.crop_positions.is_empty() and not is_instance_valid(world.windmill), "Fazenda procedural anterior substituída")

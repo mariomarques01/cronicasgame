@@ -12,6 +12,7 @@ var notice_time: float = 0
 var touch: Control
 var mobile_buttons: Control
 var controls: Label
+var title_screen: Control
 
 func label(text: String, size: int = 20) -> Label:
 	var node := Label.new()
@@ -87,9 +88,16 @@ E interagir  •  I inventário  •  Esc pausa  •  F5 salvar  •  F9 carrega
 	touch.action_buttons.append(map_button)
 	if touch.active:
 		map_button.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	title_screen = Control.new()
+	title_screen.set_script(preload("res://scripts/ui/title_screen.gd"))
+	root.add_child(title_screen)
+	title_screen.new_journey.connect(func(): world.start_game(false))
+	title_screen.continue_journey.connect(func(): world.start_game(true))
 	main_menu()
 
 func clear_menu(title: String) -> void:
+	if is_instance_valid(title_screen):
+		title_screen.hide()
 	for child in content.get_children():
 		content.remove_child(child)
 		child.queue_free()
@@ -111,16 +119,12 @@ func button(text: String, callback: Callable) -> void:
 func main_menu() -> void:
 	hud.hide()
 	clear_menu("As Crônicas de Eldervale")
-	content.add_child(label("O Segredo da Árvore Celestial", 21))
-	content.add_child(label("Protótipo jogável • Vale da Fazenda", 17))
-	button("Iniciar uma nova jornada", func(): world.start_game(false))
-	button("Ver fazenda 3D colorida", func(): get_tree().change_scene_to_file("res://scenes/world/farm_preview.tscn"))
-	if FileAccess.file_exists(Game.SAVE_PATH):
-		button("Continuar jornada", func(): world.start_game(true))
-	if not OS.has_feature("web"):
-		button("Sair", func(): get_tree().quit())
+	menu.hide()
+	title_screen.refresh()
+	title_screen.show()
 
 func show_play() -> void:
+	title_screen.hide()
 	menu.hide()
 	hud.show()
 	world.player.enabled = true

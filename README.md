@@ -1,5 +1,7 @@
 # As Crônicas de Eldervale — O Segredo da Árvore Celestial
 
+A abertura usa a arte original enviada em `MENU.zip`, preservada em `assets/ui/title_screen.png`. Clique ou toque no botão verde desenhado para iniciar a jornada. A imagem se ajusta à tela sem cortar o logo; as áreas excedentes usam o cenário das bordas escurecido. “Continuar jornada” aparece abaixo quando existe um salvamento. A opção experimental “Ver fazenda 3D colorida” foi removida do menu.
+
 ## Cenário atual: Golden Acres (Meshy)
 
 A fazenda jogável usa agora o modelo `assets/models/golden_acres.glb`, fornecido pelo usuário como `Meshy_AI_Golden_Acres_Homestea_1109103804_texture 2_0454.glb`. Substitui as construções, cercas, animais e plantações procedurais anteriores; as texturas do modelo são preservadas. A floresta externa e os elementos da missão continuam disponíveis. A importação gera arquivos de textura junto ao GLB: mantenha-os com suas configurações `.import`.

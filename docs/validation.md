@@ -1,5 +1,11 @@
 # Validação executada nesta entrega
 
+## Tela inicial com arte fornecida
+
+**73 verificações de integração aprovadas, zero falhas**. Abertura sem HUD/painel antigo, arte proporcional inteira e área clicável alinhada em retrato/paisagem/desktop, opção Continuar condicionada a salvamento e início da jornada pelo botão da arte. A imagem original de `MENU.zip` é usada sem recriação.
+
+Renderização e inspeção no Godot Compatibility em 960×1280, 1280×720 e 390×844; cliques reais enviados às áreas do botão iniciaram a ação nas três dimensões. Exportações Web e Windows release concluídas. Pausa, diálogos e inventário continuam usando os painéis do jogo; a abertura se oculta ao jogar e reaparece ao voltar ao menu. Não houve teste em celular físico.
+
 ## Câmera de terceira pessoa
 
 **64 verificações de integração aprovadas, zero falhas**. Novas verificações cobrem limites verticais, órbita sem rolagem lateral, suavização gradual, acompanhamento vertical amortecido e bloqueio de giro durante o mapa. Importação e exportações Web/Windows release concluídas. Enquadramentos inicial, limite superior e limite inferior foram renderizados e inspecionados no cenário Golden Acres pelo Godot Compatibility. Sensibilidade de mouse usa deslocamento de tela; eventos de mouse emulados por toque são ignorados para evitar aplicação duplicada. Não houve avaliação manual em celular físico.
