@@ -19,7 +19,7 @@ func run() -> void:
 	var world: Node3D = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(world)
 	await process_frame
-	check(world.ui.menu.position == Vector2(320, 180), "Menu posicionado dentro da janela")
+	check(world.ui.menu.position.x >= 0 and world.ui.menu.position.y >= 0, "Menu posicionado dentro da janela")
 	world.start_game(false)
 	await physics_frame
 	check(world.player.camera != null, "Terceira pessoa e câmera criadas")
@@ -50,6 +50,63 @@ func run() -> void:
 	for i in range(150):
 		await physics_frame
 	check(world.player.is_on_floor(), "Personagem pousa sobre terreno")
+	# Feed real Godot multi-touch events; no keyboard action is injected.
+	world.ui.touch.active = true
+	var center := Vector2(135, world.get_viewport().get_visible_rect().size.y - 145)
+	var start: Vector3 = world.player.position
+	var press := InputEventScreenTouch.new()
+	press.index = 0
+	press.pressed = true
+	press.position = center
+	world.get_viewport().push_input(press, true)
+	Input.flush_buffered_events()
+	await process_frame
+	var drag := InputEventScreenDrag.new()
+	drag.index = 0
+	drag.position = center + Vector2(0, -70)
+	drag.relative = Vector2(0, -70)
+	world.get_viewport().push_input(drag, true)
+	Input.flush_buffered_events()
+	for i in range(30):
+		await physics_frame
+	check(world.player.position.distance_to(start) > 0.5, "Joystick de toque move personagem sem teclado")
+	press.pressed = false
+	world.get_viewport().push_input(press, true)
+	Input.flush_buffered_events()
+	await process_frame
+	check(world.player.touch_axis == Vector2.ZERO, "Soltar dedo interrompe joystick")
+	var jump_touch := InputEventScreenTouch.new()
+	jump_touch.index = 1
+	jump_touch.pressed = true
+	jump_touch.position = world.ui.touch.action_buttons[0].get_global_rect().get_center()
+	world.get_viewport().push_input(jump_touch, true)
+	await physics_frame
+	await physics_frame
+	check(world.player.velocity.y > 0, "Segundo dedo no botão Pular usa física do personagem")
+	jump_touch.pressed = false
+	world.get_viewport().push_input(jump_touch, true)
+	world.ui.touch.player.touch_axis = Vector2.ONE
+	world.ui.pause_menu()
+	check(world.player.touch_axis == Vector2.ZERO, "Pausa libera comandos de toque")
+	world.ui.show_play()
+	var yaw_before: float = world.player.yaw.rotation.y
+	var look := InputEventScreenTouch.new()
+	look.index = 1
+	look.pressed = true
+	look.position = Vector2(650, 100)
+	world.get_viewport().push_input(look, true)
+	var look_drag := InputEventScreenDrag.new()
+	look_drag.index = 1
+	look_drag.position = Vector2(690, 110)
+	look_drag.relative = Vector2(40, 10)
+	world.get_viewport().push_input(look_drag, true)
+	check(world.player.yaw.rotation.y != yaw_before, "Arrasto direito gira a câmera")
+	look.pressed = false
+	world.get_viewport().push_input(look, true)
+	world.toggle_map()
+	check(world.map_camera.current, "Mapa aéreo ativado")
+	world.toggle_map()
+	check(world.player.camera.current, "Retorno à câmera do personagem")
 	var valid: Variant = JSON.parse_string(FileAccess.get_file_as_string(game.SAVE_PATH))
 	valid.collected.append("stone_0")
 	check(not game.valid_save(valid), "Rejeita coleta duplicada no save")

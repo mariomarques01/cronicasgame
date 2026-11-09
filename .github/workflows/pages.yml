@@ -31,7 +31,13 @@ jobs:
       - name: Export web and Windows
         run: |
           mkdir -p build/web build/windows
-          godot --headless --export-release Web build/web/index.html
+          godot --headless --export-release Web "build/web/eldervale-${GITHUB_SHA:0:8}.html"
+          python - <<'PYREDIRECT'
+          import os
+          from pathlib import Path
+          target = 'eldervale-' + os.environ['GITHUB_SHA'][:8] + '.html'
+          Path('build/web/index.html').write_text('<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=' + target + '"><title>Eldervale</title><a href="' + target + '">Abrir Eldervale</a></html>')
+          PYREDIRECT
           godot --headless --export-release 'Windows Desktop' build/windows/Eldervale.exe
           touch build/web/.nojekyll
       - uses: actions/upload-artifact@v4

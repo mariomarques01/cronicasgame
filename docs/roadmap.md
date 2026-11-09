@@ -20,3 +20,7 @@ Importação, execução headless, integração e exportação Web realizadas. P
 
 ## 7 — Expansão futura
 Não implementada. Estabilizar e melhorar o vale, acrescentar inventário genérico, agricultura e reparos; depois capítulo 1 completo, streaming e progressão por dados. Só então acrescentar as outras regiões conforme game_design.md. Priorizar testes de save e regressão em cada expansão.
+
+## Revisão: referência visual e celular
+
+Implementados joystick e câmera por toque, ações visíveis, adaptação de orientação, vista aérea e novo layout da fazenda com oficina, poço, depósito, moinho, silo, currais e campos. Substituída a cápsula visual por um coelho articulado; colisão continua simplificada. Texturas procedurais adicionadas. Ainda pendentes: modelos e texturas artísticos de alta fidelidade, pelo, animações esqueléticas e medição em aparelho real. A imagem de referência não foi reproduzida exatamente.
