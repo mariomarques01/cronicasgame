@@ -1,0 +1,18 @@
+{
+  "id": "forest_call",
+  "name": "O Chamado da Floresta",
+  "description": "Converse com Lia, encontre três pedras e desperte a passagem.",
+  "objectives": [
+    "Converse com Lia",
+    "Encontre as três pedras antigas",
+    "Retorne a Lia",
+    "Ative o mecanismo da passagem"
+  ],
+  "prerequisites": [],
+  "rewards": {
+    "regions": [
+      "forest"
+    ]
+  },
+  "completion_event": "open_forest_gate"
+}
