@@ -80,8 +80,9 @@ func _ready() -> void:
 	build_interactions()
 	player = CharacterBody3D.new()
 	player.set_script(PlayerScript)
-	player.position = Vector3(0, 3, 12)
+	player.position = ground(-29, 35, 2)
 	add_child(player)
+	player.respawn_position = ground(-29, 35, 2)
 	map_camera = Camera3D.new()
 	map_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	map_camera.size = 112
@@ -98,24 +99,10 @@ func _ready() -> void:
 	sync_state()
 
 func build_farm() -> void:
-	preload("res://scripts/world/farm.gd").new(self).build()
-	for wheat: bool in [false,true]:
-		var mm := MultiMesh.new()
-		mm.transform_format = MultiMesh.TRANSFORM_3D
-		var mesh := CylinderMesh.new()
-		mesh.top_radius = 0.06 if wheat else 0.05
-		mesh.bottom_radius = 0.20 if wheat else 0.35
-		mesh.height = 1.4 if wheat else 0.8
-		mesh.radial_segments = 5
-		mm.mesh = mesh
-		var entries: Array = crop_positions.filter(func(p: Dictionary): return p.wheat == wheat)
-		mm.instance_count = entries.size()
-		for i in range(entries.size()):
-			mm.set_instance_transform(i, Transform3D(Basis.IDENTITY, entries[i].pos))
-		var batch := MultiMeshInstance3D.new()
-		batch.multimesh = mm
-		batch.material_override = material(Color("c6a644") if wheat else Color("5b8132"))
-		add_child(batch)
+	var farm := Node3D.new()
+	farm.set_script(preload("res://scripts/world/imported_farm.gd"))
+	add_child(farm)
+	terrain.farm = farm
 
 func build_vegetation() -> void:
 	var rng := RandomNumberGenerator.new()
@@ -173,9 +160,9 @@ func build_interactions() -> void:
 	var npc_mesh := CapsuleMesh.new()
 	npc_mesh.radius = 0.45
 	npc_mesh.height = 1.8
-	prop(npc_mesh, ground(-10, 10, 0.9), Color("c7a65b"), true)
-	add_target("lia", "E • Conversar com Lia", ground(-10, 10, 1), "Lia • Guardiã do vale")
-	var positions := [Vector2(31, -17), Vector2(-33, -15), Vector2(9, -43)]
+	prop(npc_mesh, ground(-29, 12, 0.9), Color("c7a65b"), true)
+	add_target("lia", "E • Conversar com Lia", ground(-29, 12, 1), "Lia • Guardiã do vale")
+	var positions := [Vector2(27, 12), Vector2(-30, -17), Vector2(9, -23)]
 	for i in range(3):
 		var pos: Vector2 = positions[i]
 		var mesh := SphereMesh.new()
@@ -231,7 +218,9 @@ func start_game(load_existing: bool) -> void:
 			return
 	else:
 		Game.reset()
-	player.position = Game.player_position
+	player.position = Game.player_position if load_existing else ground(-29, 35, 2)
+	# Older saves may put the player below the imported landscape.
+	player.position.y = maxf(player.position.y, terrain.height_at(player.position.x, player.position.z) + 1.0)
 	playing = true
 	ui.show_play()
 	sync_state()
@@ -283,3 +272,4 @@ func _process(delta: float) -> void:
 		Game.save_game(player.position)
 	if Input.is_action_just_pressed("load") and Game.load_game():
 		player.position = Game.player_position
+		player.position.y = maxf(player.position.y, terrain.height_at(player.position.x, player.position.z) + 1.0)
