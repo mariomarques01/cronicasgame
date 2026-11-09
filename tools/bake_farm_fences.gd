@@ -1,6 +1,6 @@
 extends SceneTree
 ## Run from the project root: godot --headless --script tools/bake_farm_fences.gd
-## Sources remain unchanged; only the two derived meshes are regenerated.
+## Sources remain unchanged; regenerate the cleared farm and optimized prop meshes.
 func _initialize() -> void:
 	var layout: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_fences.json"))
 	var segments: Array = []
@@ -55,10 +55,15 @@ func _initialize() -> void:
 		tool.set_material(original.surface_get_material(surface))
 		tool.commit(cleared)
 	assert(ResourceSaver.save(cleared, "res://assets/models/farm_without_fences.res", ResourceSaver.FLAG_COMPRESS) == OK)
-	print("Farm fence vertices lowered: ", changed)
+	print("Farm edited vertices lowered: ", changed)
 	source.free()
-	source = load("res://assets/models/mossy_fence.glb").instantiate()
-	original = source.find_children("*", "MeshInstance3D", true, false)[0].mesh
+	bake_module("res://assets/models/mossy_fence.glb", "res://assets/models/mossy_fence_mobile.res", 4000)
+	bake_module("res://assets/models/cozy_timber_house.glb", "res://assets/models/cozy_timber_house_mobile.res", 40000)
+	quit()
+
+func bake_module(source_path: String, output_path: String, minimum_triangles: int) -> void:
+	var source: Node3D = load(source_path).instantiate()
+	var original: Mesh = source.find_children("*", "MeshInstance3D", true, false)[0].mesh
 	var simplified := ArrayMesh.new()
 	for surface in original.get_surface_count():
 		var arrays: Array = original.surface_get_arrays(surface)
@@ -68,7 +73,7 @@ func _initialize() -> void:
 		var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
 		for level in importer.get_surface_lod_count(0):
 			var candidate := importer.get_surface_lod_indices(0, level)
-			if candidate.size() / 3 >= 4000:
+			if candidate.size() / 3 >= minimum_triangles:
 				indices = candidate
 		var remap: Dictionary = {}
 		var used := PackedInt32Array()
@@ -91,7 +96,6 @@ func _initialize() -> void:
 		arrays[Mesh.ARRAY_INDEX] = indices
 		simplified.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
 		simplified.surface_set_material(surface, original.surface_get_material(surface))
-		print("Fence module triangles: ", indices.size() / 3)
-	assert(ResourceSaver.save(simplified, "res://assets/models/mossy_fence_mobile.res", ResourceSaver.FLAG_COMPRESS) == OK)
+		print(source_path, " triangles: ", indices.size() / 3)
+	assert(ResourceSaver.save(simplified, output_path, ResourceSaver.FLAG_COMPRESS) == OK)
 	source.free()
-	quit()

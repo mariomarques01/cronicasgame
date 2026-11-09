@@ -6,7 +6,7 @@ A cerca original estava fundida à malha Golden Acres. Sobrepor um modelo não r
 
 `data/regions/farm_fences.json` descreve os traçados no plano X/Z original do GLB (antes da escala 55 e do deslocamento Y=9,8). Os intervalos `gaps` são frações do comprimento total do traçado e reservam passagens. As faixas de remoção incluem as cercas dos canteiros, horta, currais, frente da casa e perímetro. As entradas norte e sul permanecem abertas; o portão da missão é independente.
 
-Para regenerar os dois recursos derivados, após importar o projeto com Godot 4.6.3:
+Para regenerar os recursos derivados (fazenda, cerca e casa principal), após importar o projeto com Godot 4.6.3:
 
 ```sh
 godot --headless --script tools/bake_farm_fences.gd
