@@ -2,10 +2,20 @@ extends StaticBody3D
 const SIZE: int = 256
 const STEP: int = 4
 @export var seed_value: int = 7421
+var farm: Node3D
 
 func height_at(x: float, z: float) -> float:
+	if is_instance_valid(farm) and absf(x) < 53 and absf(z) < 49:
+		var surface: float = farm.surface_height(x, z)
+		if is_finite(surface):
+			return surface
+	return base_height_at(x, z)
+
+func base_height_at(x: float, z: float) -> float:
 	var flatten := smoothstep(55.0, 95.0, Vector2(x, z).length())
-	return (sin(x * 0.045 + seed_value * 0.001) * cos(z * 0.039) * 5.0 + sin(z * 0.085) * 1.8) * flatten
+	var height := (sin(x * 0.045 + seed_value * 0.001) * cos(z * 0.039) * 5.0 + sin(z * 0.085) * 1.8) * flatten
+	# Keep the supporting terrain below the imported farm, including its entrance.
+	return height - (1.0 - smoothstep(47.0, 56.0, maxf(absf(x), absf(z))))
 
 func _ready() -> void:
 	var surface := SurfaceTool.new()
@@ -18,7 +28,7 @@ func _ready() -> void:
 				surface.set_uv(Vector2(px, pz) / 16.0)
 				var path := absf(Vector2(px / 1.06, pz).length() - 40.0) < 2.8 or (absf(px) < 2.5 and absf(pz) > 9) or (absf(pz - 11) < 2.5 and absf(px) < 36) or (absf(pz + 19) < 2.5 and absf(px) < 37)
 				surface.set_color(Color(1,0,0) if path else Color(0,0,0))
-				surface.add_vertex(Vector3(px, height_at(px, pz), pz))
+				surface.add_vertex(Vector3(px, base_height_at(px, pz), pz))
 	surface.generate_normals()
 	var terrain_mesh := surface.commit()
 	var visual := MeshInstance3D.new()

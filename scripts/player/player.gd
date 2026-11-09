@@ -8,6 +8,7 @@ var touch_axis := Vector2.ZERO
 var touch_running: bool = false
 var touch_jump: bool = false
 var avatar: Node3D
+var respawn_position := Vector3(0, 5, 12)
 
 func _ready() -> void:
 	var shape := CollisionShape3D.new()
@@ -69,4 +70,4 @@ func _physics_process(delta: float) -> void:
 	position.x = clampf(position.x, -125, 125)
 	position.z = clampf(position.z, -125, 125)
 	if position.y < -25:
-		position = Vector3(0, 5, 12)
+		position = respawn_position

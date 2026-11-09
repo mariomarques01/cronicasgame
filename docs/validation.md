@@ -1,5 +1,11 @@
 # Validação executada nesta entrega
 
+## Substituição da fazenda por Golden Acres
+
+O GLB enviado pelo usuário foi importado e integrado à cena principal, preservando suas texturas. Importação e exportação Web release concluídas sem erros. A integração headless passou em **45 verificações, zero falhas**, incluindo presença do cenário Meshy, ausência da antiga fazenda procedural, colisão do modelo sob o ponto inicial e apoio físico dos cinco objetivos. Os testes anteriores de missão, salvamento, animação, física e toque continuam passando.
+
+A cena principal também foi executada por 120 frames em modo headless. Esta validação não mede FPS, não percorre todos os caminhos da malha gerada e não substitui uma revisão visual e de desempenho no navegador/celular. A alteração local não publica automaticamente no GitHub Pages.
+
 Ambiente: Linux, Godot 4.6.3 oficial. Não foi usado o PC de referência nem Windows para executar o jogo.
 
 - `godot --headless --editor --import --quit`: importação e scripts aprovados.

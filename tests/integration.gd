@@ -22,6 +22,15 @@ func run() -> void:
 	check(world.ui.menu.position.x >= 0 and world.ui.menu.position.y >= 0, "Menu posicionado dentro da janela")
 	world.start_game(false)
 	await physics_frame
+	check(world.get_node_or_null("GoldenAcres") != null, "Fazenda Golden Acres importada no cenário jogável")
+	check(world.crop_positions.is_empty() and not is_instance_valid(world.windmill), "Fazenda procedural anterior substituída")
+	var spawn_ray := PhysicsRayQueryParameters3D.create(world.player.position + Vector3.UP * 10, world.player.position - Vector3.UP * 10)
+	spawn_ray.exclude = [world.player.get_rid()]
+	var spawn_hit := world.get_world_3d().direct_space_state.intersect_ray(spawn_ray)
+	check(not spawn_hit.is_empty() and spawn_hit.collider.name == "FarmCollision", "Início do personagem apoiado na colisão do modelo Meshy")
+	for target: Dictionary in world.targets:
+		var target_ray := PhysicsRayQueryParameters3D.create(target.position + Vector3.UP * 3, target.position - Vector3.UP * 5)
+		check(not world.get_world_3d().direct_space_state.intersect_ray(target_ray).is_empty(), "Apoio físico do objetivo " + target.id)
 	check(world.player.avatar.get_node_or_null("BraveBunny") != null, "Modelo principal fornecido instanciado")
 	check(world.player.camera != null, "Terceira pessoa e câmera criadas")
 	world.player.enabled = false
