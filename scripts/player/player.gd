@@ -18,7 +18,7 @@ func _ready() -> void:
 	shape.position.y = 0.9
 	add_child(shape)
 	avatar = Node3D.new()
-	avatar.set_script(preload("res://scripts/player/rabbit.gd"))
+	avatar.set_script(preload("res://scripts/player/imported_bunny.gd"))
 	add_child(avatar)
 	yaw = Node3D.new()
 	yaw.position.y = 1.6

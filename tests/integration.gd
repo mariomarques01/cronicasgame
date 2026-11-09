@@ -22,6 +22,7 @@ func run() -> void:
 	check(world.ui.menu.position.x >= 0 and world.ui.menu.position.y >= 0, "Menu posicionado dentro da janela")
 	world.start_game(false)
 	await physics_frame
+	check(world.player.avatar.get_node_or_null("BraveBunny") != null, "Modelo principal fornecido instanciado")
 	check(world.player.camera != null, "Terceira pessoa e câmera criadas")
 	check(InputMap.has_action("jump") and InputMap.has_action("interact"), "Input Map configurado")
 	check(not game.collect("stone_0"), "Pedras bloqueadas antes da conversa")
