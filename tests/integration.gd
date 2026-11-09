@@ -37,6 +37,30 @@ func run() -> void:
 	check(world.playing and not title.visible and world.ui.hud.visible, "Botão da arte inicia jornada e revela jogo")
 	await physics_frame
 	check(world.get_node_or_null("GoldenAcres") != null, "Fazenda Golden Acres importada no cenário jogável")
+	var trees := world.get_node("Trees")
+	check(trees.pine_count >= 3 and trees.tree_count > 100, "Pinheiros internos e árvores externas carregados")
+	var correctly_classified := true
+	for tree: Dictionary in trees.placements:
+		correctly_classified = correctly_classified and tree.pine == trees.is_inside(Vector2(tree.position.x, tree.position.z))
+	check(correctly_classified, "Cada árvore usa modelo definido pelo contorno real do cercado")
+	check(trees.is_inside(Vector2(0, 0)) and not trees.is_inside(Vector2(50, 45)), "Classificação usa perímetro poligonal em vez de caixa retangular")
+	check(not trees.is_inside(Vector2(0, -94)) and trees.get_node_or_null("AncientTree") != null, "Árvore ancestral externa também substituída pelo arquivo árvore")
+	check(world.terrain.height_at(-41, 29) < 0.6, "Tronco inclinado antigo removido sem fragmento alto junto ao pinheiro")
+	var pine_batches := 0
+	var tree_batches := 0
+	for node in trees.get_children():
+		if node is MultiMeshInstance3D:
+			if node.multimesh.mesh == trees.PINE:
+				pine_batches += 1
+			if node.multimesh.mesh == trees.TREE:
+				tree_batches += 1
+	check(pine_batches > 0 and tree_batches > 1, "Árvores compartilham modelos e floresta é dividida em setores")
+	var tree_config: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_trees.json"))
+	var tree_geometry := preload("res://scripts/world/tree_geometry.gd")
+	var cleared_farm: Mesh = load("res://assets/models/farm_without_fences.res")
+	for region: Dictionary in tree_config.plant_regions:
+		var signature := tree_geometry.plant_signature(cleared_farm, region.bounds, tree_config)
+		check(signature.sha256 == region.baseline.sha256 and signature.triangles == int(region.baseline.triangles), "Plantas preservadas em geometria e UVs: " + str(region.id))
 	var main_house := world.get_node("GoldenAcres/CozyTimberHouse")
 	check(main_house.visual.mesh != null, "Casa principal usa modelo Cozy Timber fornecido")
 	check(is_equal_approx(main_house.visual.mesh.get_aabb().size.x * main_house.visual.scale.x, 24.0), "Casa dimensionada para o espaço da construção principal")

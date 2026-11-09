@@ -1,5 +1,11 @@
 # Validação executada nesta entrega
 
+## Pinheiros internos e árvores externas
+
+**102 verificações aprovadas, zero falhas**. Cobertura da classificação pelo cercado real, modelos compartilhados, setores da floresta, substituição da árvore ancestral, remoção do tronco inclinado e preservação das plantas por comparação de posições dos triângulos e UVs com referências anteriores. A missão, os salvamentos, o controlador, as cercas, a casa, as entradas e a câmera continuam passando nos testes existentes.
+
+Renderizações em terceira pessoa no pátio, sudoeste e floresta externa e inspeção da vista aérea. **4 pinheiros internos e 313 árvores externas**. Exportações Web e Windows release concluídas. Fontes GLB preservadas; modelos de execução com 15.716 triângulos cada. Sem medição de FPS em celular físico ou execução do binário Windows neste Linux.
+
 ## Casa principal Cozy Timber Hearth
 
 **91 verificações aprovadas, zero falhas**. Cobertura adicionada para presença do modelo, largura de 24 unidades, malha otimizada, remoção da casa antiga da geometria/colisão fundida, colisão do novo telhado e passagem livre no lado oeste. Os testes existentes de cercas, entradas, missão, salvamento, animações, câmera e toque continuam passando.

@@ -1,0 +1,142 @@
+{
+	"embedded_trees": [
+		{
+			"center": [
+				0.15,
+				-0.09
+			],
+			"height": 14.0,
+			"id": "courtyard",
+			"radii": [
+				0.125,
+				0.135
+			]
+		},
+		{
+			"center": [
+				-0.755,
+				0.405
+			],
+			"height": 13.0,
+			"id": "southwest",
+			"radii": [
+				0.125,
+				0.105
+			]
+		},
+		{
+			"center": [
+				0.4,
+				0.765
+			],
+			"height": 12.5,
+			"id": "southeast",
+			"radii": [
+				0.115,
+				0.115
+			]
+		}
+	],
+	"extra_removal_volumes": [
+		{
+			"center": [
+				-0.75,
+				0.54
+			],
+			"id": "southwest_leaning_trunk",
+			"radii": [
+				0.08,
+				0.085
+			]
+		}
+	],
+	"plant_baseline_commit": "1fde463",
+	"plant_regions": [
+		{
+			"baseline": {
+				"sha256": "2ff2ef4a1691aa943abbaa0ed524529df849d396c0fb02fd16931d49bdfd1565",
+				"triangles": 18471
+			},
+			"bounds": [
+				-0.45,
+				0.2,
+				0.3,
+				0.55
+			],
+			"id": "crops",
+			"original_unfiltered_baseline": {
+				"sha256": "2ff2ef4a1691aa943abbaa0ed524529df849d396c0fb02fd16931d49bdfd1565",
+				"triangles": 18471.0
+			}
+		},
+		{
+			"baseline": {
+				"sha256": "f83fd80ab78a871677cc4fa74fdd69139df65733ef40ab870bf63c5dc0be94ab",
+				"triangles": 8158
+			},
+			"bounds": [
+				0.29,
+				0.42,
+				-0.12,
+				0.25
+			],
+			"id": "vegetable_garden",
+			"original_unfiltered_baseline": {
+				"sha256": "f83fd80ab78a871677cc4fa74fdd69139df65733ef40ab870bf63c5dc0be94ab",
+				"triangles": 8158.0
+			}
+		},
+		{
+			"baseline": {
+				"sha256": "d7bd383f0f3c5cad75db2ff19a4671a74e100f888c4d1df15c554cf71931d8c0",
+				"triangles": 3635
+			},
+			"bounds": [
+				-0.42,
+				-0.25,
+				-0.83,
+				-0.7
+			],
+			"id": "northwest_bushes",
+			"original_unfiltered_baseline": {
+				"sha256": "d7bd383f0f3c5cad75db2ff19a4671a74e100f888c4d1df15c554cf71931d8c0",
+				"triangles": 3635.0
+			}
+		},
+		{
+			"baseline": {
+				"sha256": "d9c44be719e7e590fcd0ef62147f53b4db642bd094aeead9ea687135b81ec208",
+				"triangles": 3355
+			},
+			"bounds": [
+				-0.88,
+				-0.64,
+				0.52,
+				0.62
+			],
+			"id": "southwest_low_plants",
+			"original_unfiltered_baseline": {
+				"sha256": "a8cbf7bbe10d5600877562cf1d1103a7a584ef20df02a6f952ef78d4398c9a74",
+				"triangles": 5029.0
+			}
+		},
+		{
+			"baseline": {
+				"sha256": "385af4ac899e738e23bef9bd8852ec3b9098c4a3fca905807f606fef85aac046",
+				"triangles": 5401
+			},
+			"bounds": [
+				0.47,
+				0.8,
+				0.29,
+				0.57
+			],
+			"id": "pasture_plants",
+			"original_unfiltered_baseline": {
+				"sha256": "385af4ac899e738e23bef9bd8852ec3b9098c4a3fca905807f606fef85aac046",
+				"triangles": 5401.0
+			}
+		}
+	],
+	"source_removal_min_y": -0.173
+}

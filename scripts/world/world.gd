@@ -105,56 +105,10 @@ func build_farm() -> void:
 	terrain.farm = farm
 
 func build_vegetation() -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 7421
-	var transforms: Array[Transform3D] = []
-	for i in range(380):
-		var x := rng.randf_range(-122, 122)
-		var z := rng.randf_range(-122, 122)
-		if absf(x) < 48 and z > -55 and z < 49:
-			continue
-		if absf(x) < 6 or Vector2(x + 36, z + 19).length() < 13:
-			continue
-		var scale_value := rng.randf_range(0.8, 1.5)
-		var transform := Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * scale_value), ground(x, z))
-		transforms.append(transform)
-	var trunk := CylinderMesh.new()
-	trunk.top_radius = 0.25
-	trunk.bottom_radius = 0.45
-	trunk.height = 4
-	trunk.radial_segments = 8
-	trunk.rings = 1
-	var crown := SphereMesh.new()
-	crown.radius = 2.8
-	crown.height = 6
-	crown.radial_segments = 12
-	crown.rings = 5
-	for part: int in range(2):
-		var mm := MultiMesh.new()
-		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.mesh = trunk if part == 0 else crown
-		mm.instance_count = transforms.size()
-		for i in range(transforms.size()):
-			var transform: Transform3D = transforms[i]
-			transform.origin.y += 2 if part == 0 else 5
-			mm.set_instance_transform(i, transform)
-		var instance := MultiMeshInstance3D.new()
-		instance.multimesh = mm
-		instance.material_override = material(Color("63503b") if part == 0 else Color("365e3e"))
-		instance.visibility_range_end = 190
-		add_child(instance)
-	# Ancient tree beyond the gate: intentionally a placeholder landmark.
-	var ancient := CylinderMesh.new()
-	ancient.top_radius = 3
-	ancient.bottom_radius = 5
-	ancient.height = 19
-	prop(ancient, ground(0, -94, 9.5), Color("665139"), true)
-	var canopy := SphereMesh.new()
-	canopy.radius = 15
-	canopy.height = 20
-	canopy.radial_segments = 20
-	canopy.rings = 10
-	prop(canopy, ground(0, -94, 24), Color("477851"))
+	var trees := Node3D.new()
+	trees.set_script(preload("res://scripts/world/trees.gd"))
+	trees.world = self
+	add_child(trees)
 
 func build_interactions() -> void:
 	var npc_mesh := CapsuleMesh.new()

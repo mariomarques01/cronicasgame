@@ -4,6 +4,8 @@ A abertura usa a arte original enviada em `MENU.zip`, preservada em `assets/ui/t
 
 ## Cenário atual: Golden Acres (Meshy)
 
+As árvores usam os arquivos enviados pelo usuário: pinheiros dentro do perímetro da fazenda e o modelo de árvore fora do cercado, inclusive no marco ancestral. Plantas baixas, arbustos, horta e plantações foram preservados. Detalhes e verificações em `docs/trees.md`.
+
 A casa principal foi substituída pelo modelo Cozy Timber Hearth enviado pelo usuário, preservando suas texturas e com colisão própria. A varanda está voltada para a abertura da cerca e o caminho. A construção antiga foi removida da malha derivada da fazenda, com o solo do pátio recomposto. Veja `docs/main-house.md`.
 
 As cercas internas e externas usam agora o módulo Mossy Garden enviado pelo usuário, com colisões próprias e passagens para circular. As paredes deformadas fundidas à fazenda foram removidas da malha derivada, e o arco da entrada sul deu lugar a um caminho nivelado. Veja `docs/farm-fences.md` para os arquivos e a regeneração dos recursos.
