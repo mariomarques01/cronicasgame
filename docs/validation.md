@@ -1,5 +1,11 @@
 # Validação executada nesta entrega
 
+## Moinho, celeiro e oficina fornecidos
+
+**120 verificações aprovadas, zero falhas**. Cobertura dos três elementos independentes, materiais fornecidos, malhas otimizadas, remoção das construções antigas da malha/colisão fundida e correspondência entre colisões e novos modelos. Acessos às pedras antigas perto da oficina e do moinho continuam livres, assim como as entradas da fazenda. Preservação da vegetação fora das áreas substituídas verificada por assinaturas de geometria e UVs. As hélices são testadas separadamente: 120 s por volta, torre/eixo fixos, ciclo contínuo, pausa e geometria sem duplicação.
+
+Modelos inspecionados isoladamente e em terceira pessoa no mapa, além de vista aérea. A rotação foi renderizada e conferida em 0 s, 15 s e 30 s. Exportações Web e Windows release concluídas. A oficina mantém a posição à esquerda perto do poço; celeiro ao norte e moinho a leste. Fontes GLB preservadas. Sem medição de FPS em celular físico ou execução do binário Windows neste Linux.
+
 ## Pinheiros internos e árvores externas
 
 **102 verificações aprovadas, zero falhas**. Cobertura da classificação pelo cercado real, modelos compartilhados, setores da floresta, substituição da árvore ancestral, remoção do tronco inclinado e preservação das plantas por comparação de posições dos triângulos e UVs com referências anteriores. A missão, os salvamentos, o controlador, as cercas, a casa, as entradas e a câmera continuam passando nos testes existentes.

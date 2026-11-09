@@ -58,8 +58,44 @@ func run() -> void:
 	var tree_config: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_trees.json"))
 	var tree_geometry := preload("res://scripts/world/tree_geometry.gd")
 	var cleared_farm: Mesh = load("res://assets/models/farm_without_fences.res")
+	var building_config: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_buildings.json"))
+	var building_footprints := preload("res://scripts/world/building_geometry.gd").prepare(building_config)
+	var buildings := world.get_node("GoldenAcres/FarmBuildings")
+	check(buildings.get_child_count() == 3, "Moinho, celeiro e oficina substituídos como elementos independentes")
+	for spec: Dictionary in building_config:
+		var building: Node3D = buildings.get_node(str(spec.id))
+		var visual: MeshInstance3D = building.get_node("Visual")
+		check(visual.mesh.surface_get_material(0) != null and visual.mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3 < 70000, "Modelo otimizado com material fornecido: " + str(spec.id))
+		var p: Vector3 = building.position
+		check(absf(world.terrain.height_at(p.x, p.z) - 0.01) < 0.1, "Construção antiga removida da malha fundida: " + str(spec.id))
+		var roof_ray := PhysicsRayQueryParameters3D.create(p + Vector3.UP * 30, p - Vector3.UP * 3)
+		var roof := world.get_world_3d().direct_space_state.intersect_ray(roof_ray)
+		check(not roof.is_empty() and roof.collider.name == str(spec.id) + "Collision", "Colisão corresponde ao novo modelo: " + str(spec.id))
+	var workshop_approach := PhysicsRayQueryParameters3D.create(Vector3(-30, 0.8, -16), Vector3(-30, 0.8, -17.5))
+	check(world.get_world_3d().direct_space_state.intersect_ray(workshop_approach).is_empty(), "Acesso à pedra antiga perto da oficina permanece livre")
+	var windmill_approach := PhysicsRayQueryParameters3D.create(Vector3(27, 0.8, 10), Vector3(27, 0.8, 14))
+	check(world.get_world_3d().direct_space_state.intersect_ray(windmill_approach).is_empty(), "Acesso à pedra antiga perto do moinho permanece livre")
+	check(is_instance_valid(buildings.rotor) and buildings.rotor.get_node("Vanes").mesh == buildings.ROTOR_MESH, "Hélices separadas da torre para animação")
+	var tower: MeshInstance3D = buildings.get_node("Windmill/Visual")
+	var tower_transform := tower.global_transform
+	var axis_position: Vector3 = buildings.rotor.global_position
+	var start_angle: float = buildings.rotor.rotation.z
+	buildings.advance_rotor(1.0)
+	check(is_equal_approx(angle_difference(start_angle, buildings.rotor.rotation.z), -TAU / 120.0), "Hélices giram devagar: uma volta a cada dois minutos")
+	check(tower.global_transform.is_equal_approx(tower_transform) and buildings.rotor.global_position.is_equal_approx(axis_position), "Torre e eixo permanecem fixos durante giro")
+	buildings.advance_rotor(119.0)
+	check(absf(angle_difference(buildings.rotor.rotation.z, start_angle)) < 0.00001, "Giro completa volta contínua sem deslocar o moinho")
+	var was_enabled: bool = world.player.enabled
+	world.player.enabled = false
+	var pause_angle: float = buildings.rotor.rotation.z
+	buildings._process(1.0)
+	check(is_equal_approx(buildings.rotor.rotation.z, pause_angle), "Pausa também interrompe as hélices")
+	world.player.enabled = was_enabled
+	var static_triangles: int = tower.mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3
+	var rotor_triangles: int = buildings.ROTOR_MESH.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3
+	check(static_triangles + rotor_triangles == buildings.WINDMILL_FRAME.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3, "Separação conserva geometria sem duplicar as hélices estáticas")
 	for region: Dictionary in tree_config.plant_regions:
-		var signature := tree_geometry.plant_signature(cleared_farm, region.bounds, tree_config)
+		var signature := tree_geometry.plant_signature(cleared_farm, region.bounds, tree_config, building_footprints)
 		check(signature.sha256 == region.baseline.sha256 and signature.triangles == int(region.baseline.triangles), "Plantas preservadas em geometria e UVs: " + str(region.id))
 	var main_house := world.get_node("GoldenAcres/CozyTimberHouse")
 	check(main_house.visual.mesh != null, "Casa principal usa modelo Cozy Timber fornecido")

@@ -5,6 +5,8 @@ func _initialize() -> void:
 	var layout: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_fences.json"))
 	var trees: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_trees.json"))
 	var tree_geometry := preload("res://scripts/world/tree_geometry.gd")
+	var buildings: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_buildings.json"))
+	var footprints := preload("res://scripts/world/building_geometry.gd").prepare(buildings)
 	var segments: Array = []
 	for path: Dictionary in layout.paths:
 		for i in range(path.points.size() - 1):
@@ -28,6 +30,8 @@ func _initialize() -> void:
 					vertices[i].y = float(layout.ground_y) + (vertex.y - float(layout.ground_y)) * float(layout.bed_height_scale)
 			var point := Vector2(vertex.x, vertex.z)
 			var erase := false
+			if preload("res://scripts/world/building_geometry.gd").contains(point, footprints):
+				erase = true
 			for segment: Array in segments:
 				if Geometry2D.get_closest_point_to_segment(point, segment[0], segment[1]).distance_squared_to(point) <= pow(float(segment[2]), 2):
 					erase = true
@@ -61,7 +65,7 @@ func _initialize() -> void:
 		tool.set_material(original.surface_get_material(surface))
 		tool.commit(cleared)
 	for region: Dictionary in trees.plant_regions:
-		var signature := tree_geometry.plant_signature(cleared, region.bounds, trees)
+		var signature := tree_geometry.plant_signature(cleared, region.bounds, trees, footprints)
 		if signature.sha256 != region.baseline.sha256 or signature.triangles != int(region.baseline.triangles):
 			push_error("Plant geometry/UV preservation failed: " + str(region.id))
 			quit(1)
@@ -74,7 +78,41 @@ func _initialize() -> void:
 	bake_module("res://assets/models/cozy_timber_house.glb", "res://assets/models/cozy_timber_house_mobile.res", 40000)
 	bake_module("res://assets/models/farm_pine.glb", "res://assets/models/farm_pine_mobile.res", 5000, 0.08)
 	bake_module("res://assets/models/forest_tree.glb", "res://assets/models/forest_tree_mobile.res", 5000, 0.08)
+	for building: Dictionary in buildings:
+		var minimum := 25000 if building.asset == "workshop" else 40000
+		bake_module("res://assets/models/" + building.asset + ".glb", "res://assets/models/" + building.asset + "_mobile.res", minimum, 0.08)
+	bake_windmill_rotor()
 	quit()
+
+func bake_windmill_rotor() -> void:
+	var full: Mesh = load("res://assets/models/windmill_mobile.res")
+	var stationary := ArrayMesh.new()
+	var rotating := ArrayMesh.new()
+	for surface in full.get_surface_count():
+		var arrays: Array = full.surface_get_arrays(surface)
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+		var static_indices := PackedInt32Array()
+		var rotor_indices := PackedInt32Array()
+		for i in range(0, indices.size(), 3):
+			var center := (vertices[indices[i]] + vertices[indices[i + 1]] + vertices[indices[i + 2]]) / 3.0
+			# Front rotor plane; exclude the lower central doorway and its trim.
+			var is_rotor := center.z > 0.25 and center.y > 0.28 and (center.y > 0.40 or absf(center.x - 0.0028) > 0.145)
+			if is_rotor:
+				rotor_indices.append_array(PackedInt32Array([indices[i], indices[i + 1], indices[i + 2]]))
+			else:
+				static_indices.append_array(PackedInt32Array([indices[i], indices[i + 1], indices[i + 2]]))
+		var static_arrays := arrays.duplicate()
+		static_arrays[Mesh.ARRAY_INDEX] = static_indices
+		stationary.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, static_arrays)
+		stationary.surface_set_material(surface, full.surface_get_material(surface))
+		var rotor_arrays := arrays.duplicate()
+		rotor_arrays[Mesh.ARRAY_INDEX] = rotor_indices
+		rotating.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, rotor_arrays)
+		rotating.surface_set_material(surface, full.surface_get_material(surface))
+		print("Windmill split: ", static_indices.size() / 3, " static, ", rotor_indices.size() / 3, " rotor triangles")
+	assert(ResourceSaver.save(stationary, "res://assets/models/windmill_static.res", ResourceSaver.FLAG_COMPRESS) == OK)
+	assert(ResourceSaver.save(rotating, "res://assets/models/windmill_rotor.res", ResourceSaver.FLAG_COMPRESS) == OK)
 
 func bake_module(source_path: String, output_path: String, minimum_triangles: int, maximum_error_ratio: float = INF) -> void:
 	var source: Node3D = load(source_path).instantiate()

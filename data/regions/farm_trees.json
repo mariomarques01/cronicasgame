@@ -50,7 +50,7 @@
 			]
 		}
 	],
-	"plant_baseline_commit": "1fde463",
+	"plant_baseline_commit": "5757e28",
 	"plant_regions": [
 		{
 			"baseline": {
@@ -65,6 +65,10 @@
 			],
 			"id": "crops",
 			"original_unfiltered_baseline": {
+				"sha256": "2ff2ef4a1691aa943abbaa0ed524529df849d396c0fb02fd16931d49bdfd1565",
+				"triangles": 18471.0
+			},
+			"pre_building_baseline": {
 				"sha256": "2ff2ef4a1691aa943abbaa0ed524529df849d396c0fb02fd16931d49bdfd1565",
 				"triangles": 18471.0
 			}
@@ -84,12 +88,16 @@
 			"original_unfiltered_baseline": {
 				"sha256": "f83fd80ab78a871677cc4fa74fdd69139df65733ef40ab870bf63c5dc0be94ab",
 				"triangles": 8158.0
+			},
+			"pre_building_baseline": {
+				"sha256": "f83fd80ab78a871677cc4fa74fdd69139df65733ef40ab870bf63c5dc0be94ab",
+				"triangles": 8158.0
 			}
 		},
 		{
 			"baseline": {
-				"sha256": "d7bd383f0f3c5cad75db2ff19a4671a74e100f888c4d1df15c554cf71931d8c0",
-				"triangles": 3635
+				"sha256": "64e25ee2b1384e9329b7138495468812233931ba25f652555a07d041924632cc",
+				"triangles": 2798
 			},
 			"bounds": [
 				-0.42,
@@ -99,6 +107,10 @@
 			],
 			"id": "northwest_bushes",
 			"original_unfiltered_baseline": {
+				"sha256": "d7bd383f0f3c5cad75db2ff19a4671a74e100f888c4d1df15c554cf71931d8c0",
+				"triangles": 3635.0
+			},
+			"pre_building_baseline": {
 				"sha256": "d7bd383f0f3c5cad75db2ff19a4671a74e100f888c4d1df15c554cf71931d8c0",
 				"triangles": 3635.0
 			}
@@ -118,6 +130,10 @@
 			"original_unfiltered_baseline": {
 				"sha256": "a8cbf7bbe10d5600877562cf1d1103a7a584ef20df02a6f952ef78d4398c9a74",
 				"triangles": 5029.0
+			},
+			"pre_building_baseline": {
+				"sha256": "d9c44be719e7e590fcd0ef62147f53b4db642bd094aeead9ea687135b81ec208",
+				"triangles": 3355.0
 			}
 		},
 		{
@@ -135,8 +151,13 @@
 			"original_unfiltered_baseline": {
 				"sha256": "385af4ac899e738e23bef9bd8852ec3b9098c4a3fca905807f606fef85aac046",
 				"triangles": 5401.0
+			},
+			"pre_building_baseline": {
+				"sha256": "385af4ac899e738e23bef9bd8852ec3b9098c4a3fca905807f606fef85aac046",
+				"triangles": 5401.0
 			}
 		}
 	],
+	"previous_plant_baseline_commit": "1fde463",
 	"source_removal_min_y": -0.173
 }
