@@ -41,7 +41,25 @@ func run() -> void:
 	world.player.avatar.animate(0, true, true)
 	check(world.player.avatar.animation_player.current_animation == "Running", "Corrida seleciona Running")
 	world.player.avatar.animate(0, true, true, false)
-	check(not world.player.avatar.animation_player.is_playing(), "No ar suspende ciclo de corrida")
+	var animator: AnimationPlayer = world.player.avatar.animation_player
+	check(animator.current_animation == "Jumping" and animator.is_playing(), "No ar reproduz animação de pulo do FBX")
+	var jump := animator.get_animation("Jumping")
+	check(jump.loop_mode == Animation.LOOP_NONE and jump.get_track_count() >= 20, "Pulo adaptado ao esqueleto sem repetição")
+	var rotation_tracks_only := true
+	for track in jump.get_track_count():
+		rotation_tracks_only = rotation_tracks_only and jump.track_get_type(track) == Animation.TYPE_ROTATION_3D
+	check(rotation_tracks_only, "Animação não altera deslocamento nem proporções do personagem")
+	var skeleton := world.player.avatar.model.find_child("Skeleton3D", true, false) as Skeleton3D
+	var leg := skeleton.find_bone("mixamorig_LeftLeg")
+	animator.advance(0.08)
+	var first_pose := skeleton.get_bone_pose_rotation(leg)
+	animator.advance(0.08)
+	check(first_pose.angle_to(skeleton.get_bone_pose_rotation(leg)) > 0.01, "Animação de pulo move os ossos do coelho")
+	var jump_time := animator.current_animation_position
+	world.player.avatar.animate(0, true, true, false)
+	check(is_equal_approx(animator.current_animation_position, jump_time), "Pulo não reinicia a cada frame no ar")
+	world.player.avatar.animate(0, true, true, true)
+	check(animator.current_animation == "Running", "Aterrissagem retoma corrida")
 	world.player.avatar.animate(0, false, false)
 	check(not world.player.avatar.animation_player.is_playing(), "Parado mantém pose estática")
 	world.player.enabled = true
@@ -105,6 +123,7 @@ func run() -> void:
 	await physics_frame
 	await physics_frame
 	check(world.player.velocity.y > 0, "Segundo dedo no botão Pular usa física do personagem")
+	check(animator.current_animation == "Jumping", "Pulo por toque também dispara animação")
 	jump_touch.pressed = false
 	world.get_viewport().push_input(jump_touch, true)
 	world.ui.touch.player.touch_axis = Vector2.ONE

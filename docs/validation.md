@@ -1,5 +1,9 @@
 # Validação executada nesta entrega
 
+## Animação de pulo do FBX
+
+Integração headless: **51 verificações aprovadas, zero falhas**. Cobertura adicionada para seleção de Jumping no ar, clipe sem repetição, ausência de translação/escala, movimento efetivo de um osso da perna, continuidade sem reiniciar por frame, retorno à corrida ao aterrissar e acionamento pelo botão de toque. Exportações Web e Windows release concluídas. A adaptação de proporções foi validada funcionalmente; o acabamento visual precisa ser conferido durante o jogo. O executável Windows não foi executado neste Linux.
+
 ## Substituição da fazenda por Golden Acres
 
 O GLB enviado pelo usuário foi importado e integrado à cena principal, preservando suas texturas. Importação e exportação Web release concluídas sem erros. A integração headless passou em **45 verificações, zero falhas**, incluindo presença do cenário Meshy, ausência da antiga fazenda procedural, colisão do modelo sob o ponto inicial e apoio físico dos cinco objetivos. Os testes anteriores de missão, salvamento, animação, física e toque continuam passando.
