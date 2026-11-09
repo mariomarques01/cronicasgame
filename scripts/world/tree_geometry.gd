@@ -11,7 +11,7 @@ static func in_old_tree(vertex: Vector3, config: Dictionary) -> bool:
 			return true
 	return false
 
-static func plant_signature(mesh: Mesh, bounds: Array, excluded_trees: Dictionary = {}) -> Dictionary:
+static func plant_signature(mesh: Mesh, bounds: Array, excluded_trees: Dictionary = {}, excluded_buildings: Array = []) -> Dictionary:
 	var bytes := PackedByteArray()
 	var count := 0
 	for surface in mesh.get_surface_count():
@@ -23,10 +23,13 @@ static func plant_signature(mesh: Mesh, bounds: Array, excluded_trees: Dictionar
 			var included := true
 			for j in 3:
 				var v := vertices[indices[i + j]]
+				if v.x < bounds[0] or v.x > bounds[1] or v.z < bounds[2] or v.z > bounds[3]:
+					included = false
+					break
 				if not excluded_trees.is_empty() and in_old_tree(v, excluded_trees):
 					included = false
 					break
-				if v.x < bounds[0] or v.x > bounds[1] or v.z < bounds[2] or v.z > bounds[3]:
+				if preload("res://scripts/world/building_geometry.gd").contains(Vector2(v.x, v.z), excluded_buildings):
 					included = false
 					break
 			if included:

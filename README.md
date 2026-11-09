@@ -4,6 +4,8 @@ A abertura usa a arte original enviada em `MENU.zip`, preservada em `assets/ui/t
 
 ## Cenário atual: Golden Acres (Meshy)
 
+Moinho, celeiro ao norte e oficina à esquerda, perto do poço, também usam os três modelos enviados pelo usuário. As versões antigas foram removidas da malha e das colisões, com pisos recompostos e acesso às pedras da missão preservado. As hélices do moinho giram lentamente, completando uma volta a cada dois minutos, e param ao pausar. Veja `docs/farm-buildings.md`.
+
 As árvores usam os arquivos enviados pelo usuário: pinheiros dentro do perímetro da fazenda e o modelo de árvore fora do cercado, inclusive no marco ancestral. Plantas baixas, arbustos, horta e plantações foram preservados. Detalhes e verificações em `docs/trees.md`.
 
 A casa principal foi substituída pelo modelo Cozy Timber Hearth enviado pelo usuário, preservando suas texturas e com colisão própria. A varanda está voltada para a abertura da cerca e o caminho. A construção antiga foi removida da malha derivada da fazenda, com o solo do pátio recomposto. Veja `docs/main-house.md`.
