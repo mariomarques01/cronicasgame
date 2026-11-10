@@ -81,11 +81,7 @@ func build_south_entry() -> void:
 	plane.size = Vector2(11, 21.9)
 	surface.mesh = plane
 	surface.position.y = 0.002 # Keep the dirt approach above the continuous meadow.
-	var material := StandardMaterial3D.new()
-	material.albedo_texture = preload("res://assets/textures/dirt.png")
-	material.uv1_scale = Vector3(4, 8, 1)
-	material.roughness = 1.0
-	surface.material_override = material
+	surface.material_override = get_parent().get_parent().terrain.ground_material
 	ground.add_child(surface)
 	var collider := CollisionShape3D.new()
 	var box := BoxShape3D.new()

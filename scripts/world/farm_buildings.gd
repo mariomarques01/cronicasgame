@@ -104,10 +104,7 @@ func build_ground(root: Node3D, footprint: Dictionary) -> void:
 	var visual := MeshInstance3D.new()
 	visual.mesh = mesh
 	visual.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var material := StandardMaterial3D.new()
-	material.albedo_texture = preload("res://assets/textures/dirt.png")
-	material.roughness = 1.0
-	visual.material_override = material
+	visual.material_override = world.terrain.ground_material
 	ground.add_child(visual)
 	var collider := CollisionShape3D.new()
 	collider.shape = mesh.create_trimesh_shape()
