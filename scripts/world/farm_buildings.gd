@@ -29,7 +29,7 @@ func place_building(spec: Dictionary) -> void:
 	var basis := Basis(Vector3.UP, deg_to_rad(float(spec.yaw_degrees))).scaled(Vector3.ONE * factor)
 	var visual := MeshInstance3D.new()
 	visual.name = "Visual"
-	visual.mesh = mesh
+	visual.mesh = without_floor(mesh, factor)
 	visual.transform = Transform3D(basis, -(basis * pivot))
 	root.add_child(visual)
 	if spec.asset == "windmill":
@@ -50,7 +50,12 @@ func place_building(spec: Dictionary) -> void:
 	var faces := mesh.get_faces()
 	for i in faces.size():
 		faces[i] = visual.transform * faces[i]
-	geometry.set_faces(faces)
+	var solid_faces := PackedVector3Array()
+	for i in range(0, faces.size(), 3):
+		if maxf(faces[i].y, maxf(faces[i + 1].y, faces[i + 2].y)) < 0.18:
+			continue
+		solid_faces.append_array(PackedVector3Array([faces[i], faces[i + 1], faces[i + 2]]))
+	geometry.set_faces(solid_faces)
 	shape.shape = geometry
 	body.add_child(shape)
 	root.add_child(body)
@@ -84,8 +89,8 @@ func build_ground(root: Node3D, footprint: Dictionary) -> void:
 		var points: Array[Vector3] = []
 		for j in 3:
 			var p := polygon[indices[i + j]]
-			points.append(Vector3(p.x - root.position.x, 0, p.y - root.position.z))
-		if (points[1] - points[0]).cross(points[2] - points[0]).y < 0:
+			points.append(Vector3(p.x - root.position.x, 0.06, p.y - root.position.z))
+		if (points[1] - points[0]).cross(points[2] - points[0]).y > 0:
 			var swap := points[1]
 			points[1] = points[2]
 			points[2] = swap
@@ -108,3 +113,24 @@ func build_ground(root: Node3D, footprint: Dictionary) -> void:
 	collider.shape = mesh.create_trimesh_shape()
 	ground.add_child(collider)
 	root.add_child(ground)
+
+func without_floor(source: Mesh, factor: float) -> ArrayMesh:
+	var result := ArrayMesh.new()
+	var bottom := source.get_aabb().position.y
+	for surface in source.get_surface_count():
+		var arrays: Array = source.surface_get_arrays(surface)
+		var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var indices: PackedInt32Array = arrays[Mesh.ARRAY_INDEX]
+		var kept := PackedInt32Array()
+		for i in range(0, indices.size(), 3):
+			var a := vertices[indices[i]]
+			var b := vertices[indices[i + 1]]
+			var c := vertices[indices[i + 2]]
+			var normal := (b - a).cross(c - a).normalized()
+			if (maxf(a.y, maxf(b.y, c.y)) - bottom) * factor < 0.12 and absf(normal.y) > 0.65:
+				continue
+			kept.append_array(PackedInt32Array([indices[i], indices[i + 1], indices[i + 2]]))
+		arrays[Mesh.ARRAY_INDEX] = kept
+		result.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+		result.surface_set_material(surface, source.surface_get_material(surface))
+	return result

@@ -66,8 +66,10 @@ func run() -> void:
 		var building: Node3D = buildings.get_node(str(spec.id))
 		var visual: MeshInstance3D = building.get_node("Visual")
 		check(visual.mesh.surface_get_material(0) != null and visual.mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3 < 70000, "Modelo otimizado com material fornecido: " + str(spec.id))
+		var ground_visual: MeshInstance3D = building.get_node(str(spec.id) + "Ground").get_child(0)
+		check(ground_visual.mesh.surface_get_arrays(0)[Mesh.ARRAY_NORMAL][0].y > 0.9, "Piso orientado para cima: " + str(spec.id))
 		var p: Vector3 = building.position
-		check(absf(world.terrain.height_at(p.x, p.z) - 0.01) < 0.1, "Construção antiga removida da malha fundida: " + str(spec.id))
+		check(world.terrain.farm.surface_height(p.x, p.z) < 0.1, "Construção antiga removida da malha fundida: " + str(spec.id))
 		var roof_ray := PhysicsRayQueryParameters3D.create(p + Vector3.UP * 30, p - Vector3.UP * 3)
 		var roof := world.get_world_3d().direct_space_state.intersect_ray(roof_ray)
 		check(not roof.is_empty() and roof.collider.name == str(spec.id) + "Collision", "Colisão corresponde ao novo modelo: " + str(spec.id))
@@ -91,7 +93,7 @@ func run() -> void:
 	buildings._process(1.0)
 	check(is_equal_approx(buildings.rotor.rotation.z, pause_angle), "Pausa também interrompe as hélices")
 	world.player.enabled = was_enabled
-	var static_triangles: int = tower.mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3
+	var static_triangles: int = buildings.MODELS["windmill"].surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3
 	var rotor_triangles: int = buildings.ROTOR_MESH.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3
 	check(static_triangles + rotor_triangles == buildings.WINDMILL_FRAME.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3, "Separação conserva geometria sem duplicar as hélices estáticas")
 	for region: Dictionary in tree_config.plant_regions:
@@ -317,6 +319,15 @@ func run() -> void:
 		await physics_frame
 	world.player.touch_axis = Vector2.ZERO
 	check(world.player.position.z < 36 and world.player.is_on_floor(), "Personagem atravessa entrada sul caminhando sem salto ou parede invisível")
+	world.player.position = Vector3(-5, 2, -27.3)
+	world.player.velocity = Vector3.ZERO
+	world.player.camera_yaw = -PI / 2
+	world.player.yaw.rotation.y = -PI / 2
+	world.player.touch_axis = Vector2(0, -1)
+	for i in range(150):
+		await physics_frame
+	world.player.touch_axis = Vector2.ZERO
+	check(world.player.position.x > 3 and world.player.is_on_floor(), "Caminha pela frente do celeiro sem travar nas camadas do piso")
 	if not previous.is_empty():
 		file = FileAccess.open(game.SAVE_PATH, FileAccess.WRITE)
 		file.store_string(previous)

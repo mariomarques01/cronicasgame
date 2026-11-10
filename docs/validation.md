@@ -1,5 +1,11 @@
 # Validação executada nesta entrega
 
+## Piso e travamento perto do celeiro
+
+Corrigida a orientação dos triângulos dos pátios reconstruídos: a face superior agora recebe luz e colisões pelo lado correto. O piso fica 6 cm acima da base dos modelos, evitando contato entre camadas quase coincidentes. Folhas horizontais inferiores embutidas nos modelos são removidas da visualização, e pequenas faces de chão abaixo de 18 cm não entram no colisor da construção. A consulta de altura acompanha o piso reconstruído. A mesma orientação foi corrigida nos discos de solo sob as árvores.
+
+**124 verificações aprovadas, zero falhas**. O controlador percorre a frente do celeiro por 150 frames de física e termina apoiado em BarnGround, sem colisões repetidas contra o chão antigo. Testes verificam as normais superiores dos três pátios. Exportações Web/Windows e teste funcional do pacote Web em diretório vazio concluídos.
+
 ## Correção da publicação Pages e densidade da floresta
 
 A execução `42653222998` concluiu o build em 2m03s e falhou na publicação após 10m07s, com `Timeout reached, aborting!`. O serviço aceita no máximo 10 minutos de deploy; o workflow respeita esse teto, com limite do job de 30 minutos. Após reduzir o pacote, a execução `42659472298` concluiu build e publicação com sucesso: build de 2m29s e deploy de 46s.
