@@ -1,6 +1,5 @@
 extends Node3D
 ## Golden Acres supplied by the user. Preserve embedded Meshy materials.
-const MODEL = preload("res://assets/models/golden_acres.glb")
 const CLEARED_FARM: ArrayMesh = preload("res://assets/models/farm_without_fences.res")
 const MODEL_SCALE := 55.0
 const MODEL_OFFSET := Vector3(0, 9.8, 0)
@@ -9,10 +8,10 @@ var height_cache: Dictionary = {}
 
 func _ready() -> void:
 	name = "GoldenAcres"
-	var model: Node3D = MODEL.instantiate()
+	var model := MeshInstance3D.new()
+	model.name = "ClearedFarm"
+	model.mesh = CLEARED_FARM
 	add_child(model)
-	for visual: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
-		visual.mesh = CLEARED_FARM
 	model.scale = Vector3.ONE * MODEL_SCALE
 	model.position = MODEL_OFFSET
 	build_collision(model)
