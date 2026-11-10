@@ -3,8 +3,11 @@ const SIZE: int = 256
 const STEP: int = 4
 @export var seed_value: int = 7421
 var farm: Node3D
+var building_footprints: Array = []
 
 func height_at(x: float, z: float) -> float:
+	if preload("res://scripts/world/building_geometry.gd").contains(Vector2(x, z) / 55.0, building_footprints):
+		return 0.085
 	if is_instance_valid(farm) and absf(x) < 53 and absf(z) < 49:
 		var surface: float = farm.surface_height(x, z)
 		if is_finite(surface):
@@ -18,6 +21,8 @@ func base_height_at(x: float, z: float) -> float:
 	return height - (1.0 - smoothstep(47.0, 56.0, maxf(absf(x), absf(z))))
 
 func _ready() -> void:
+	var buildings: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_buildings.json"))
+	building_footprints = preload("res://scripts/world/building_geometry.gd").prepare(buildings)
 	var surface := SurfaceTool.new()
 	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for z in range(-128, 128, STEP):

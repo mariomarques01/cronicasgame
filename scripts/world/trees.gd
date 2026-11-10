@@ -115,7 +115,7 @@ func build_root_ground(center: Vector2, radii: Vector2) -> void:
 	for i in 32:
 		var a := Vector2(cos(float(i) * TAU / 32), sin(float(i) * TAU / 32))
 		var b := Vector2(cos(float(i + 1) * TAU / 32), sin(float(i + 1) * TAU / 32))
-		for point: Vector2 in [Vector2.ZERO, b, a]:
+		for point: Vector2 in [Vector2.ZERO, a, b]:
 			tool.set_uv(Vector2(0.5, 0.5) + point * 0.5)
 			tool.add_vertex(Vector3(point.x * radii.x, 0, point.y * radii.y))
 	tool.generate_normals()
