@@ -102,6 +102,11 @@ func run() -> void:
 			continue
 		var signature := tree_geometry.plant_signature(cleared_farm, region.bounds, tree_config, building_footprints)
 		check(signature.sha256 == region.baseline.sha256 and signature.triangles == int(region.baseline.triangles), "Plantas preservadas em geometria e UVs: " + str(region.id))
+	var lia: StaticBody3D = world.get_node("Lia")
+	var lia_visual: MeshInstance3D = lia.get_node("WolfCharacter")
+	check(lia_visual.mesh != null, "Lia usa personagem lobo fornecido")
+	check(is_equal_approx(lia_visual.mesh.get_aabb().size.y * lia_visual.scale.y, 2.5), "Personagem da Lia dimensionado e apoiado no chão")
+	check(lia.get_child(1) is CollisionShape3D and lia.position.is_equal_approx(world.ground(-30, 9)), "Lia mantém posição e colisão próprias")
 	var main_house := world.get_node("GoldenAcres/CozyTimberHouse")
 	check(main_house.visual.mesh != null, "Casa principal usa modelo Cozy Timber fornecido")
 	check(is_equal_approx(main_house.visual.mesh.get_aabb().size.x * main_house.visual.scale.x, 24.0), "Casa dimensionada para o espaço da construção principal")

@@ -1,5 +1,11 @@
 # Validação executada nesta entrega
 
+## Lia com personagem lobo fornecido
+
+Substituída a cápsula visual da Lia pelo arquivo original preservado em `assets/models/lia_wolf.glb`. A malha otimizada mantém materiais e UVs, com 31.328 triângulos e altura de 2,5 unidades. O corpo de colisão, posição (-30, 9 no plano X/Z), identificação e diálogos da missão foram preservados. Modelo renderizado e inspecionado no Godot Compatibility.
+
+**147 verificações aprovadas, zero falhas**, incluindo presença do modelo, escala e apoio no chão. Exportações Web/Windows e teste funcional do pacote Web em diretório vazio aprovados. A seleção de recursos exportados inclui explicitamente o script e a malha da Lia.
+
 ## Piso e travamento perto do celeiro
 
 Corrigida a orientação dos triângulos dos pátios reconstruídos: a face superior agora recebe luz e colisões pelo lado correto. O piso fica 6 cm acima da base dos modelos, evitando contato entre camadas quase coincidentes. Folhas horizontais inferiores embutidas nos modelos são removidas da visualização, e pequenas faces de chão abaixo de 18 cm não entram no colisor da construção. A consulta de altura acompanha o piso reconstruído. A mesma orientação foi corrigida nos discos de solo sob as árvores.

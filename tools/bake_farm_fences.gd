@@ -81,6 +81,7 @@ func _initialize() -> void:
 	for building: Dictionary in buildings:
 		var minimum := 25000 if building.asset == "workshop" else 40000
 		bake_module("res://assets/models/" + building.asset + ".glb", "res://assets/models/" + building.asset + "_mobile.res", minimum, 0.08)
+	bake_module("res://assets/models/lia_wolf.glb", "res://assets/models/lia_wolf_mobile.res", 25000, 0.05)
 	bake_windmill_rotor()
 	quit()
 
