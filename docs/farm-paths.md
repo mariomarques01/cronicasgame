@@ -3,7 +3,8 @@
 A circulação usa o mapa de referência: estrada em volta da casa e das
 plantações, faixa entre a casa e o campo, acesso lateral à horta e ligações aos
 portões do curro, pasto e moinho. A grama Emerald Meadow permanece nas áreas
-livres e os canteiros conservam sua geometria e UVs.
+livres. Os canteiros agora recebem os repolhos e cenouras descritos em
+`docs/cabbage-and-carrots.md`, com corredores internos entre as fileiras.
 
 `data/regions/farm_paths.json` define trajetos em coordenadas mundiais X/Z e
 larguras reais (2 m na ligação estreita entre os canteiros; 3–5 m nos demais

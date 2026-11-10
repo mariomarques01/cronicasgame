@@ -1,0 +1,63 @@
+{
+  "ground_y": 0.02,
+  "beds": [
+    {
+      "id": "cabbage_north",
+      "crop": "cabbage",
+      "bounds": [
+        -24.4,
+        17.2,
+        -9.8,
+        22.5
+      ],
+      "columns": 8,
+      "rows": 3,
+      "patch_width": 1.4
+    },
+    {
+      "id": "cabbage_south",
+      "crop": "cabbage",
+      "bounds": [
+        -24.4,
+        24.0,
+        -9.8,
+        29.7
+      ],
+      "columns": 8,
+      "rows": 3,
+      "patch_width": 1.4
+    },
+    {
+      "id": "carrots_north",
+      "crop": "carrots",
+      "bounds": [
+        -3.8,
+        17.2,
+        10.5,
+        22.5
+      ],
+      "columns": 5,
+      "rows": 2,
+      "patch_width": 2.35
+    },
+    {
+      "id": "carrots_south",
+      "crop": "carrots",
+      "bounds": [
+        -3.8,
+        24.0,
+        10.5,
+        29.7
+      ],
+      "columns": 5,
+      "rows": 2,
+      "patch_width": 2.35
+    }
+  ],
+  "empty_garden": [
+    15.95,
+    -6.6,
+    23.1,
+    13.75
+  ]
+}

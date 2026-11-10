@@ -56,11 +56,7 @@ func run() -> void:
 			if node.multimesh.mesh == trees.TREE:
 				tree_batches += 1
 	check(pine_batches > 0 and tree_batches > 1, "Árvores compartilham modelos e floresta é dividida em setores")
-	var tree_config: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_trees.json"))
-	var tree_geometry := preload("res://scripts/world/tree_geometry.gd")
-	var cleared_farm: Mesh = world.get_node("GoldenAcres/CultivatedPlants").mesh
 	var building_config: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_buildings.json"))
-	var building_footprints := preload("res://scripts/world/building_geometry.gd").prepare(building_config)
 	var buildings := world.get_node("GoldenAcres/FarmBuildings")
 	check(buildings.get_child_count() == 3, "Moinho, celeiro e oficina substituídos como elementos independentes")
 	for spec: Dictionary in building_config:
@@ -97,11 +93,7 @@ func run() -> void:
 	var static_triangles: int = buildings.MODELS["windmill"].surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3
 	var rotor_triangles: int = buildings.ROTOR_MESH.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3
 	check(static_triangles + rotor_triangles == buildings.WINDMILL_FRAME.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3, "Separação conserva geometria sem duplicar as hélices estáticas")
-	for region: Dictionary in tree_config.plant_regions:
-		if region.id not in ["crops", "vegetable_garden"]:
-			continue
-		var signature := tree_geometry.plant_signature(cleared_farm, region.bounds, tree_config, building_footprints)
-		check(signature.sha256 == region.baseline.sha256 and signature.triangles == int(region.baseline.triangles), "Plantas preservadas em geometria e UVs: " + str(region.id))
+	check_new_crops(world)
 	var lia: StaticBody3D = world.get_node("Lia")
 	var lia_visual: MeshInstance3D = lia.get_node("WolfCharacter")
 	check(lia_visual.mesh != null, "Lia usa personagem lobo fornecido")
@@ -360,6 +352,28 @@ func run() -> void:
 	await process_frame
 	print("RESULTADO: %d falhas" % failures)
 	quit(1 if failures else 0)
+
+func check_new_crops(world: Node3D) -> void:
+	var crops: Node3D = world.get_node("GoldenAcres/CultivatedPlants")
+	check(crops.crop_counts.get("cabbage", 0) == 48 and crops.crop_counts.get("carrots", 0) == 20, "Novo campo contém 48 repolhos e 20 módulos de cenouras")
+	check(crops.find_children("*", "StaticBody3D", true, false).is_empty(), "Novos cultivos não recriam colisões irregulares no chão")
+	var contained := true
+	for crop: String in ["cabbage", "carrots"]:
+		var batch: MultiMeshInstance3D = crops.get_node("Cabbages" if crop == "cabbage" else "Carrots")
+		var triangles := 0
+		for surface in batch.multimesh.mesh.get_surface_count():
+			triangles += batch.multimesh.mesh.surface_get_arrays(surface)[Mesh.ARRAY_INDEX].size() / 3
+		check(triangles <= 30000, "Modelo de cultivo otimizado para instâncias: " + crop)
+		for i in batch.multimesh.instance_count:
+			var bounds: AABB = crops.instance_transforms[crop][i] * batch.multimesh.mesh.get_aabb()
+			var inside_bed := false
+			for bed: Dictionary in crops.beds:
+				if bed.crop != crop:
+					continue
+				inside_bed = inside_bed or (bounds.position.x >= float(bed.bounds[0]) - 0.01 and bounds.end.x <= float(bed.bounds[2]) + 0.01 and bounds.position.z >= float(bed.bounds[1]) - 0.01 and bounds.end.z <= float(bed.bounds[3]) + 0.01)
+			contained = contained and inside_bed and absf(bounds.position.y - 0.02) < 0.001
+	check(contained, "Todos os modelos apoiados no chão, dentro dos canteiros, sem invadir cercas ou corredores")
+	check(crops.get_node_or_null("EmptyLateralGarden") != null, "Horta lateral antiga removida e deixada livre para próximos cultivos")
 
 func check_farm_paths(world: Node3D) -> void:
 	var layout: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_paths.json"))
