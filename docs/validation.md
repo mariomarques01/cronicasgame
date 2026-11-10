@@ -4,7 +4,7 @@
 
 Substituída a cápsula visual da Lia pelo arquivo original preservado em `assets/models/lia_wolf.glb`. A malha otimizada mantém materiais e UVs, com 31.328 triângulos e altura de 2,5 unidades. O corpo de colisão, posição (-30, 9 no plano X/Z), identificação e diálogos da missão foram preservados. Modelo renderizado e inspecionado no Godot Compatibility.
 
-**147 verificações aprovadas, zero falhas**, incluindo presença do modelo, escala e apoio no chão. Exportações Web/Windows e teste funcional do pacote Web em diretório vazio aprovados. A seleção de recursos exportados inclui explicitamente o script e a malha da Lia.
+**147 verificações aprovadas, zero falhas**, incluindo presença do modelo, escala e apoio no chão. Exportações Web/Windows e teste funcional do pacote Web em diretório vazio aprovados. A seleção de recursos exportados inclui explicitamente o script e a malha da Lia. As duas texturas de execução respeitam o limite de 1024 px adotado para celular, preservando os arquivos originais.
 
 ## Piso e travamento perto do celeiro
 
