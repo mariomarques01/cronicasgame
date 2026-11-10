@@ -114,8 +114,8 @@ func build_interactions() -> void:
 	var npc_mesh := CapsuleMesh.new()
 	npc_mesh.radius = 0.45
 	npc_mesh.height = 1.8
-	prop(npc_mesh, ground(-29, 12, 0.9), Color("c7a65b"), true)
-	add_target("lia", "E • Conversar com Lia", ground(-29, 12, 1), "Lia • Guardiã do vale")
+	prop(npc_mesh, ground(-30, 9, 0.9), Color("c7a65b"), true)
+	add_target("lia", "E • Conversar com Lia", ground(-30, 9, 1), "Lia • Guardiã do vale")
 	var positions := [Vector2(27, 12), Vector2(-30, -17), Vector2(9, -23)]
 	for i in range(3):
 		var pos: Vector2 = positions[i]

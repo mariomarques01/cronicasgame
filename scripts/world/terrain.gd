@@ -34,30 +34,23 @@ func _ready() -> void:
 				var px: float = x + offset.x
 				var pz: float = z + offset.y
 				surface.set_uv(Vector2(px, pz) / 16.0)
-				var path := absf(Vector2(px / 1.06, pz).length() - 40.0) < 2.8 or (absf(px) < 2.5 and absf(pz) > 9) or (absf(pz - 11) < 2.5 and absf(px) < 36) or (absf(pz + 19) < 2.5 and absf(px) < 37)
-				surface.set_color(Color(1,0,0) if path else Color(0,0,0))
 				surface.add_vertex(Vector3(px, base_height_at(px, pz), pz))
 	surface.generate_normals()
 	var terrain_mesh := surface.commit()
 	var visual := MeshInstance3D.new()
 	visual.mesh = terrain_mesh
-	var mat := StandardMaterial3D.new()
-	mat.vertex_color_use_as_albedo = true
-	mat.vertex_color_is_srgb = true
-	mat.roughness = 0.95
 	var shader := Shader.new()
 	shader.code = """shader_type spatial;
 	uniform sampler2D grass_tex: source_color, repeat_enable;
 	uniform sampler2D dirt_tex: source_color, repeat_enable;
+	uniform sampler2D road_mask: repeat_disable, filter_linear;
+	uniform vec4 road_bounds;
 	varying vec3 world_pos;
 	void vertex(){world_pos=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;}
 	void fragment(){
 		vec2 p=world_pos.xz;
-		float ring=abs(length(vec2(p.x/1.06,p.y))-40.0);
-		float center=max(abs(p.x),9.0-abs(p.y));
-		float south=max(abs(p.y-11.0),abs(p.x)-36.0);
-		float north=max(abs(p.y+19.0),abs(p.x)-37.0);
-		float path=1.0-smoothstep(2.0,3.0,min(ring,min(center,min(south,north))));
+		vec2 road_uv=(p-road_bounds.xy)/road_bounds.zw;
+		float path=texture(road_mask,road_uv).r;
 		ALBEDO=mix(texture(grass_tex,p/8.0).rgb,texture(dirt_tex,p/2.0).rgb,path);
 		ROUGHNESS=0.95;
 	}"""
@@ -65,6 +58,10 @@ func _ready() -> void:
 	terrain_material.shader = shader
 	terrain_material.set_shader_parameter("grass_tex",load("res://assets/grass/emerald_meadow_albedo.png"))
 	terrain_material.set_shader_parameter("dirt_tex",load("res://assets/textures/dirt.png"))
+	var paths: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_paths.json"))
+	var bounds: Array = paths.mask_bounds
+	terrain_material.set_shader_parameter("road_mask", load("res://assets/textures/farm_paths_mask.png"))
+	terrain_material.set_shader_parameter("road_bounds", Vector4(bounds[0], bounds[1], bounds[2] - bounds[0], bounds[3] - bounds[1]))
 	visual.material_override = terrain_material
 	ground_material = terrain_material
 	add_child(visual)

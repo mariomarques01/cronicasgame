@@ -36,6 +36,7 @@ func run() -> void:
 	title.start_button.pressed.emit()
 	check(world.playing and not title.visible and world.ui.hud.visible, "Botão da arte inicia jornada e revela jogo")
 	await physics_frame
+	check_farm_paths(world)
 	check(world.get_node_or_null("GoldenAcres") != null, "Fazenda Golden Acres importada no cenário jogável")
 	var trees := world.get_node("Trees")
 	check(trees.pine_count >= 3 and trees.tree_count > 100, "Pinheiros internos e árvores externas carregados")
@@ -109,7 +110,7 @@ func run() -> void:
 	var house_ray := PhysicsRayQueryParameters3D.create(Vector3(-13, 20, 0), Vector3(-13, -2, 0))
 	var house_hit := world.get_world_3d().direct_space_state.intersect_ray(house_ray)
 	check(not house_hit.is_empty() and house_hit.collider.name == "HouseCollision", "Telhado da casa nova possui colisão correspondente")
-	var west_walkway := PhysicsRayQueryParameters3D.create(Vector3(-28, 0.8, 5), Vector3(-28, 0.8, 9))
+	var west_walkway := PhysicsRayQueryParameters3D.create(Vector3(-31, 0.8, 5), Vector3(-31, 0.8, 9))
 	check(world.get_world_3d().direct_space_state.intersect_ray(west_walkway).is_empty(), "Caminho oeste junto à casa permanece livre")
 	var fence_layout := world.get_node("GoldenAcres/MossyGardenFences")
 	check(fence_layout.section_count > 100, "Cerca Mossy Garden substitui cercados distribuídos pelo mapa")
@@ -230,7 +231,7 @@ func run() -> void:
 	check(game.stage == 4 and "forest" in game.regions and world.gate.get_child(1).disabled, "Desbloqueio persiste")
 	var query := PhysicsRayQueryParameters3D.create(Vector3(60, 40, 40), Vector3(60, -20, 40))
 	check(not world.get_world_3d().direct_space_state.intersect_ray(query).is_empty(), "Terreno possui colisão")
-	world.player.position = Vector3(0, 5, 12)
+	world.player.position = Vector3(-13.25, 5, 13.2)
 	for i in range(150):
 		await physics_frame
 	check(world.player.is_on_floor(), "Personagem pousa sobre terreno")
@@ -354,3 +355,41 @@ func run() -> void:
 	await process_frame
 	print("RESULTADO: %d falhas" % failures)
 	quit(1 if failures else 0)
+
+func check_farm_paths(world: Node3D) -> void:
+	var layout: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_paths.json"))
+	var shape := CapsuleShape3D.new()
+	shape.radius = 0.36
+	shape.height = 1.8
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = shape
+	# The quest gate deliberately closes the forest route until its objective is complete.
+	query.exclude = [world.player.get_rid(), world.gate.get_rid()]
+	for path: Dictionary in layout.paths:
+		var blocked: Array[String] = []
+		for i in range(path.points.size() - 1):
+			var a := Vector2(path.points[i][0], path.points[i][1])
+			var b := Vector2(path.points[i + 1][0], path.points[i + 1][1])
+			var perpendicular := (b - a).normalized().orthogonal()
+			for step in range(ceili(a.distance_to(b)) + 1):
+				var center := a.lerp(b, minf(float(step) / maxf(a.distance_to(b), 1.0), 1.0))
+				for side in [-1.0, 0.0, 1.0]:
+					var point: Vector2 = center + perpendicular * side * (float(path.width) * 0.5 - 0.5)
+					query.transform = Transform3D(Basis.IDENTITY, Vector3(point.x, 1.05, point.y))
+					var hits := world.get_world_3d().direct_space_state.intersect_shape(query, 1)
+					if not hits.is_empty():
+						var description := str(hits[0].collider.name) + " at " + str(point.snapped(Vector2.ONE * 0.1))
+						if not description in blocked:
+							blocked.append(description)
+		check(blocked.is_empty(), "Caminho livre para a cápsula do jogador (centro e bordas): " + str(path.id) + ("; " + str(blocked) if not blocked.is_empty() else ""))
+	var mask: Texture2D = world.terrain.ground_material.get_shader_parameter("road_mask")
+	var image := mask.get_image()
+	for plot: Dictionary in layout.protected_plots:
+		var bounds: Array = plot.bounds
+		var clear := true
+		for x in range(1, 5):
+			for z in range(1, 5):
+				var point := Vector2(lerpf(bounds[0], bounds[2], x / 5.0), lerpf(bounds[1], bounds[3], z / 5.0))
+				var uv := (point - Vector2(layout.mask_bounds[0], layout.mask_bounds[1])) / Vector2(layout.mask_bounds[2] - layout.mask_bounds[0], layout.mask_bounds[3] - layout.mask_bounds[1])
+				clear = clear and image.get_pixel(int(uv.x * image.get_width()), int(uv.y * image.get_height())).r < 0.01
+		check(clear, "Estrada não invade a plantação: " + str(plot.id))

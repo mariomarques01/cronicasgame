@@ -41,11 +41,7 @@ func build_courtyard(bounds: Array) -> void:
 	var plane := PlaneMesh.new()
 	plane.size = size
 	surface.mesh = plane
-	var material := StandardMaterial3D.new()
-	material.albedo_texture = preload("res://assets/textures/dirt.png")
-	material.uv1_scale = Vector3(12, 8, 1)
-	material.roughness = 1.0
-	surface.material_override = material
+	surface.material_override = get_parent().get_parent().terrain.ground_material
 	ground.add_child(surface)
 	var collision := CollisionShape3D.new()
 	var box := BoxShape3D.new()
