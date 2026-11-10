@@ -1,5 +1,9 @@
 # Chão Emerald Meadow
 
+Atualização: as plantas antigas mencionadas abaixo foram substituídas pelos
+assets de repolho e cenoura; veja `docs/cabbage-and-carrots.md`. O chão plano e
+a grama Emerald Meadow continuam em uso.
+
 O ZIP enviado pelo usuário foi extraído para
 `assets/grass/source/emerald_meadow.glb`. Essa pasta usa `.gdignore`: o GLB
 original de 26,99 MB e 534.354 triângulos é uma fonte de edição, não um recurso

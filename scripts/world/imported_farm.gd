@@ -1,10 +1,7 @@
 extends Node3D
-## Flat Emerald Meadow ground with the original cultivated plants retained.
-const CROPS: ArrayMesh = preload("res://assets/models/farm_crops.res")
+## Flat Emerald Meadow ground with the supplied cabbage and carrot crops.
 const GROUND_SIZE := Vector2(108, 104)
 const GROUND_HEIGHT := 0.01
-const MODEL_SCALE := 55.0
-const MODEL_OFFSET := Vector3(0, 9.8, 0)
 
 func _ready() -> void:
 	name = "GoldenAcres"
@@ -25,12 +22,9 @@ func _ready() -> void:
 	collider.position.y = -0.1
 	ground.add_child(collider)
 	add_child(ground)
-	# Crop meshes retain their source UVs/positions, but never uneven terrain collision.
-	var crops := MeshInstance3D.new()
+	var crops := Node3D.new()
 	crops.name = "CultivatedPlants"
-	crops.mesh = CROPS
-	crops.scale = Vector3.ONE * MODEL_SCALE
-	crops.position = MODEL_OFFSET
+	crops.set_script(preload("res://scripts/world/crops.gd"))
 	add_child(crops)
 	var house := Node3D.new()
 	house.set_script(preload("res://scripts/world/main_house.gd"))
