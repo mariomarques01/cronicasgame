@@ -10,7 +10,8 @@ permissions:
   id-token: write
 concurrency:
   group: pages-${{ github.ref }}
-  cancel-in-progress: true
+  # Keep production publication running when another main push arrives.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -65,4 +66,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
         with:
-          timeout: 600000
+          # Pages may spend more than 10 minutes synchronizing large game files.
+          # Leave headroom below the deploy job's 30-minute limit.
+          timeout: 1200000
+          reporting_interval: 10000
