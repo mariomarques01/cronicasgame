@@ -1,20 +1,37 @@
 extends Node3D
-## Golden Acres supplied by the user. Preserve embedded Meshy materials.
-const CLEARED_FARM: ArrayMesh = preload("res://assets/models/farm_without_fences.res")
+## Flat Emerald Meadow ground with the original cultivated plants retained.
+const CROPS: ArrayMesh = preload("res://assets/models/farm_crops.res")
+const GROUND_SIZE := Vector2(108, 104)
+const GROUND_HEIGHT := 0.01
 const MODEL_SCALE := 55.0
 const MODEL_OFFSET := Vector3(0, 9.8, 0)
-var faces := PackedVector3Array()
-var height_cache: Dictionary = {}
 
 func _ready() -> void:
 	name = "GoldenAcres"
-	var model := MeshInstance3D.new()
-	model.name = "ClearedFarm"
-	model.mesh = CLEARED_FARM
-	add_child(model)
-	model.scale = Vector3.ONE * MODEL_SCALE
-	model.position = MODEL_OFFSET
-	build_collision(model)
+	var ground := StaticBody3D.new()
+	ground.name = "FarmCollision"
+	ground.position.y = GROUND_HEIGHT
+	var plane := PlaneMesh.new()
+	plane.size = GROUND_SIZE
+	var visual := MeshInstance3D.new()
+	visual.name = "EmeraldMeadowGround"
+	visual.mesh = plane
+	visual.material_override = get_parent().terrain.ground_material
+	ground.add_child(visual)
+	var collider := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(GROUND_SIZE.x, 0.2, GROUND_SIZE.y)
+	collider.shape = shape
+	collider.position.y = -0.1
+	ground.add_child(collider)
+	add_child(ground)
+	# Crop meshes retain their source UVs/positions, but never uneven terrain collision.
+	var crops := MeshInstance3D.new()
+	crops.name = "CultivatedPlants"
+	crops.mesh = CROPS
+	crops.scale = Vector3.ONE * MODEL_SCALE
+	crops.position = MODEL_OFFSET
+	add_child(crops)
 	var house := Node3D.new()
 	house.set_script(preload("res://scripts/world/main_house.gd"))
 	add_child(house)
@@ -26,39 +43,5 @@ func _ready() -> void:
 	fences.set_script(preload("res://scripts/world/farm_fences.gd"))
 	add_child(fences)
 
-func build_collision(node: Node) -> void:
-	if node is MeshInstance3D and node.mesh:
-		var transform: Transform3D = global_transform.affine_inverse() * node.global_transform
-		var mesh_faces: PackedVector3Array = node.mesh.get_faces()
-		for vertex in mesh_faces:
-			faces.append(transform * vertex)
-		var body := StaticBody3D.new()
-		body.name = "FarmCollision"
-		var shape := CollisionShape3D.new()
-		var triangles := ConcavePolygonShape3D.new()
-		triangles.backface_collision = true
-		triangles.set_faces(faces)
-		shape.shape = triangles
-		body.add_child(shape)
-		add_child(body)
-	for child in node.get_children():
-		build_collision(child)
-
 func surface_height(x: float, z: float) -> float:
-	var key := Vector2(x, z)
-	if height_cache.has(key):
-		return height_cache[key]
-	var highest := -INF
-	for i in range(0, faces.size(), 3):
-		var a := faces[i]
-		var b := faces[i + 1] - a
-		var c := faces[i + 2] - a
-		var determinant := b.x * c.z - b.z * c.x
-		if absf(determinant) < 0.000001:
-			continue
-		var u := ((x - a.x) * c.z - (z - a.z) * c.x) / determinant
-		var v := (b.x * (z - a.z) - b.z * (x - a.x)) / determinant
-		if u >= 0 and v >= 0 and u + v <= 1:
-			highest = maxf(highest, a.y + u * b.y + v * c.y)
-	height_cache[key] = highest
-	return highest
+	return GROUND_HEIGHT if absf(x) <= GROUND_SIZE.x * 0.5 and absf(z) <= GROUND_SIZE.y * 0.5 else -INF

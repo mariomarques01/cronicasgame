@@ -57,7 +57,7 @@ func run() -> void:
 	check(pine_batches > 0 and tree_batches > 1, "Árvores compartilham modelos e floresta é dividida em setores")
 	var tree_config: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_trees.json"))
 	var tree_geometry := preload("res://scripts/world/tree_geometry.gd")
-	var cleared_farm: Mesh = load("res://assets/models/farm_without_fences.res")
+	var cleared_farm: Mesh = world.get_node("GoldenAcres/CultivatedPlants").mesh
 	var building_config: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_buildings.json"))
 	var building_footprints := preload("res://scripts/world/building_geometry.gd").prepare(building_config)
 	var buildings := world.get_node("GoldenAcres/FarmBuildings")
@@ -97,6 +97,8 @@ func run() -> void:
 	var rotor_triangles: int = buildings.ROTOR_MESH.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3
 	check(static_triangles + rotor_triangles == buildings.WINDMILL_FRAME.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3, "Separação conserva geometria sem duplicar as hélices estáticas")
 	for region: Dictionary in tree_config.plant_regions:
+		if region.id not in ["crops", "vegetable_garden"]:
+			continue
 		var signature := tree_geometry.plant_signature(cleared_farm, region.bounds, tree_config, building_footprints)
 		check(signature.sha256 == region.baseline.sha256 and signature.triangles == int(region.baseline.triangles), "Plantas preservadas em geometria e UVs: " + str(region.id))
 	var main_house := world.get_node("GoldenAcres/CozyTimberHouse")
@@ -124,7 +126,7 @@ func run() -> void:
 	check(world.get_world_3d().direct_space_state.intersect_ray(entry_ray).is_empty(), "Entrada sul livre do arco antigo deformado")
 	var entry_floor_ray := PhysicsRayQueryParameters3D.create(Vector3(0, 3, 42), Vector3(0, -3, 42))
 	var entry_floor := world.get_world_3d().direct_space_state.intersect_ray(entry_floor_ray)
-	check(not entry_floor.is_empty() and entry_floor.collider.name == "SouthEntranceGround" and absf(entry_floor.position.y - 0.01) < 0.02, "Buraco do arco antigo coberto por caminho com colisão nivelada")
+	check(not entry_floor.is_empty() and entry_floor.collider.name in ["SouthEntranceGround", "FarmCollision"] and absf(entry_floor.position.y - 0.01) < 0.02, "Buraco do arco antigo coberto por caminho com colisão nivelada")
 	var perimeter_ray := PhysicsRayQueryParameters3D.create(Vector3(-53, 0.8, 0), Vector3(-49, 0.8, 0))
 	var perimeter_hit := world.get_world_3d().direct_space_state.intersect_ray(perimeter_ray)
 	check(not perimeter_hit.is_empty() and perimeter_hit.collider == fence_body, "Perímetro externo também usa a nova cerca")
@@ -136,6 +138,22 @@ func run() -> void:
 	var garden_edge_ray := PhysicsRayQueryParameters3D.create(Vector3(21.6, 5, 16.45), Vector3(21.6, -3, 16.45))
 	var garden_edge := world.get_world_3d().direct_space_state.intersect_ray(garden_edge_ray)
 	check(not garden_edge.is_empty() and garden_edge.position.y < 0.5, "Borda da horta sem fragmento alto da parede antiga")
+	var flat_samples := 0
+	for point: Vector2 in [Vector2(-44, 5), Vector2(40, -28), Vector2(35, 32), Vector2(-32, 32), Vector2(-10, -28), Vector2(10, 8)]:
+		var ray := PhysicsRayQueryParameters3D.create(Vector3(point.x, 0.5, point.y), Vector3(point.x, -0.5, point.y))
+		var hit := world.get_world_3d().direct_space_state.intersect_ray(ray)
+		if not hit.is_empty() and hit.collider.name == "FarmCollision" and absf(hit.position.y - 0.01) < 0.001:
+			flat_samples += 1
+	check(flat_samples == 6, "Antigas pedras/flores substituídas por piso com colisão plana em toda a fazenda")
+	var corners_clear := true
+	for x in [-54.0, 54.0]:
+		for z in [-52.0, 52.0]:
+			corners_clear = corners_clear and world.terrain.base_height_at(x, z) < 0.0
+	check(corners_clear, "Terreno externo não atravessa o piso nos cantos da fazenda")
+	check(world.get_node_or_null("GoldenAcres/ClearedFarm") == null and world.get_node_or_null("Trees/TreeRootGround") == null, "Sem malha antiga ou remendos de grama sobre o novo piso")
+	var meadow: MeshInstance3D = world.get_node("GoldenAcres/FarmCollision/EmeraldMeadowGround")
+	check(meadow.mesh.get_faces().size() == 6, "Grama usa apenas dois triângulos no lugar do modelo de 534 mil faces")
+	check(meadow.material_override.get_shader_parameter("grass_tex").resource_path == "res://assets/grass/emerald_meadow_albedo.png", "Chão usa a grama Emerald Meadow fornecida")
 	check(world.crop_positions.is_empty() and not is_instance_valid(world.windmill), "Fazenda procedural anterior substituída")
 	var spawn_ray := PhysicsRayQueryParameters3D.create(world.player.position + Vector3.UP * 10, world.player.position - Vector3.UP * 10)
 	spawn_ray.exclude = [world.player.get_rid()]

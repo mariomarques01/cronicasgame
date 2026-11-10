@@ -27,6 +27,11 @@ func run() -> void:
 		return
 	check_texture_budget(world)
 	check(not ResourceLoader.exists("res://assets/models/golden_acres.glb"), "Pacote não inclui a fazenda original substituída")
+	check(not ResourceLoader.exists("res://assets/models/farm_without_fences.res"), "Malha antiga com pedras/flores fora do pacote")
+	check(not ResourceLoader.exists("res://assets/grass/source/emerald_meadow.glb"), "Modelo fonte de 534 mil faces fora do pacote")
+	check(world.get_node_or_null("GoldenAcres/CultivatedPlants") != null, "Plantações preservadas no pacote")
+	var meadow: MeshInstance3D = world.get_node("GoldenAcres/FarmCollision/EmeraldMeadowGround")
+	check(meadow.material_override.get_shader_parameter("grass_tex").get_width() == 1024, "Nova grama exportada em 1024 px")
 	var game := root.get_node("Game")
 	check(typeof(game.quest) == TYPE_DICTIONARY and game.quest.has("id"), "Dados JSON da missão incluídos")
 	world.start_game(false)
@@ -48,6 +53,12 @@ func check_texture_budget(world: Node) -> void:
 		var mesh: Mesh
 		if node is MeshInstance3D:
 			mesh = node.mesh
+			if node.material_override is ShaderMaterial:
+				var shader_material: ShaderMaterial = node.material_override
+				for uniform: Dictionary in shader_material.shader.get_shader_uniform_list():
+					var value: Variant = shader_material.get_shader_parameter(uniform.name)
+					if value is Texture2D:
+						textures[value.get_instance_id()] = value
 		elif node is MultiMeshInstance3D and node.multimesh:
 			mesh = node.multimesh.mesh
 		if mesh == null:
