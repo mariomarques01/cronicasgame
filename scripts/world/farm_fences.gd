@@ -80,6 +80,7 @@ func build_south_entry() -> void:
 	var plane := PlaneMesh.new()
 	plane.size = Vector2(11, 21.9)
 	surface.mesh = plane
+	surface.position.y = 0.002 # Keep the dirt approach above the continuous meadow.
 	var material := StandardMaterial3D.new()
 	material.albedo_texture = preload("res://assets/textures/dirt.png")
 	material.uv1_scale = Vector3(4, 8, 1)

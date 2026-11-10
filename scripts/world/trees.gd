@@ -20,9 +20,6 @@ func _ready() -> void:
 	for tree: Dictionary in config.embedded_trees:
 		var center := Vector2(tree.center[0], tree.center[1]) * 55.0
 		add_tree(Vector3(center.x, 0.015, center.y), float(tree.height), true)
-		build_root_ground(center, Vector2(tree.radii[0], tree.radii[1]) * 55.0)
-	for volume: Dictionary in config.get("extra_removal_volumes", []):
-		build_root_ground(Vector2(volume.center[0], volume.center[1]) * 55.0, Vector2(volume.radii[0], volume.radii[1]) * 55.0)
 	# Reuse the previous forest's seed, positions and exclusion of the quest path.
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7421
@@ -103,32 +100,3 @@ func build_batches() -> void:
 				batch.visibility_range_end = 125.0
 				batch.visibility_range_end_margin = 12.0
 			add_child(batch)
-
-func build_root_ground(center: Vector2, radii: Vector2) -> void:
-	# Close only the footprint formerly occupied by the fused tree, below plants.
-	var ground := StaticBody3D.new()
-	ground.name = "TreeRootGround"
-	ground.position = Vector3(center.x, 0.015, center.y)
-	radii *= 1.12
-	var tool := SurfaceTool.new()
-	tool.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for i in 32:
-		var a := Vector2(cos(float(i) * TAU / 32), sin(float(i) * TAU / 32))
-		var b := Vector2(cos(float(i + 1) * TAU / 32), sin(float(i + 1) * TAU / 32))
-		for point: Vector2 in [Vector2.ZERO, a, b]:
-			tool.set_uv(Vector2(0.5, 0.5) + point * 0.5)
-			tool.add_vertex(Vector3(point.x * radii.x, 0, point.y * radii.y))
-	tool.generate_normals()
-	var mesh := tool.commit()
-	var visual := MeshInstance3D.new()
-	visual.mesh = mesh
-	var material := StandardMaterial3D.new()
-	material.albedo_texture = preload("res://assets/textures/grass.png")
-	material.uv1_scale = Vector3(4, 4, 1)
-	material.roughness = 1.0
-	visual.material_override = material
-	ground.add_child(visual)
-	var collider := CollisionShape3D.new()
-	collider.shape = mesh.create_trimesh_shape()
-	ground.add_child(collider)
-	add_child(ground)

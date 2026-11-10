@@ -4,11 +4,12 @@ const STEP: int = 4
 @export var seed_value: int = 7421
 var farm: Node3D
 var building_footprints: Array = []
+var ground_material: ShaderMaterial
 
 func height_at(x: float, z: float) -> float:
 	if preload("res://scripts/world/building_geometry.gd").contains(Vector2(x, z) / 55.0, building_footprints):
 		return 0.085
-	if is_instance_valid(farm) and absf(x) < 53 and absf(z) < 49:
+	if is_instance_valid(farm):
 		var surface: float = farm.surface_height(x, z)
 		if is_finite(surface):
 			return surface
@@ -17,8 +18,10 @@ func height_at(x: float, z: float) -> float:
 func base_height_at(x: float, z: float) -> float:
 	var flatten := smoothstep(55.0, 95.0, Vector2(x, z).length())
 	var height := (sin(x * 0.045 + seed_value * 0.001) * cos(z * 0.039) * 5.0 + sin(z * 0.085) * 1.8) * flatten
-	# Keep the supporting terrain below the imported farm, including its entrance.
-	return height - (1.0 - smoothstep(47.0, 56.0, maxf(absf(x), absf(z))))
+	# A flat margin keeps coarse terrain triangles below every farm corner.
+	# Only the exterior forest transitions back into the surrounding hills.
+	var edge := maxf(absf(x) / 58.0, absf(z) / 56.0)
+	return lerpf(-0.05, height, smoothstep(1.0, 1.35, edge))
 
 func _ready() -> void:
 	var buildings: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_buildings.json"))
@@ -55,14 +58,15 @@ func _ready() -> void:
 		float south=max(abs(p.y-11.0),abs(p.x)-36.0);
 		float north=max(abs(p.y+19.0),abs(p.x)-37.0);
 		float path=1.0-smoothstep(2.0,3.0,min(ring,min(center,min(south,north))));
-		ALBEDO=mix(texture(grass_tex,UV*8.0).rgb,texture(dirt_tex,UV*8.0).rgb,path);
+		ALBEDO=mix(texture(grass_tex,p/8.0).rgb,texture(dirt_tex,p/2.0).rgb,path);
 		ROUGHNESS=0.95;
 	}"""
 	var terrain_material := ShaderMaterial.new()
 	terrain_material.shader = shader
-	terrain_material.set_shader_parameter("grass_tex",load("res://assets/textures/grass.png"))
+	terrain_material.set_shader_parameter("grass_tex",load("res://assets/grass/emerald_meadow_albedo.png"))
 	terrain_material.set_shader_parameter("dirt_tex",load("res://assets/textures/dirt.png"))
 	visual.material_override = terrain_material
+	ground_material = terrain_material
 	add_child(visual)
 	var collision := CollisionShape3D.new()
 	collision.shape = terrain_mesh.create_trimesh_shape()
