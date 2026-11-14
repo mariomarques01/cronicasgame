@@ -34,3 +34,9 @@ static func apply_css_size(window: Window, css_size: Vector2i) -> void:
 		window.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_IGNORE
 	if window.content_scale_size != css_size:
 		window.content_scale_size = css_size
+	# Keep full-resolution UI, but cap the 3D scene independently on dense displays.
+	var pixels := Vector2(window.size)
+	var target_pixels := minf(float(css_size.x * css_size.y) * 1.5625, 1280.0 * 720.0)
+	var scene_scale := minf(1.0, sqrt(target_pixels / maxf(1.0, pixels.x * pixels.y)))
+	if not is_equal_approx(window.scaling_3d_scale, scene_scale):
+		window.scaling_3d_scale = scene_scale
