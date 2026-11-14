@@ -1,5 +1,9 @@
 # Validação executada nesta entrega
 
+## HUD compacto e pausa em Configurações
+
+Faixa de missão reduzida de 132 para 58 pixels CSS no celular; detalhes completos disponíveis por toque. Minimap móvel reduzido de 90 para 72 pixels CSS. Botão permanente de pausa removido; engrenagem circular de oito dentes abre Configurações, com opção Pausar jogo. **228 verificações aprovadas, zero falhas**, incluindo toque em DPR 3 na faixa e engrenagem, conteúdo completo da missão, pausa/retorno e preservação dos testes de densidade e multitoque. Captura real do novo HUD em 1170×2532 / 390×844 CSS conferida.
+
 ## Escala do HUD no navegador mobile / Retina
 
 Corrigida a escala baseada em pixels físicos: o navegador agora informa o tamanho CSS do canvas e o Godot aplica a mesma transformação ao desenho e à entrada. **217 verificações aprovadas, zero falhas**, incluindo DPR 1/2/3 em retrato e paisagem, tamanho mínimo dos botões e eventos reais em coordenadas físicas para Pular/joystick. A resolução 3D não foi reduzida. O tamanho CSS é reconsultado para orientação, tela cheia e barras do navegador. Sem validação em iPhone físico neste ambiente.

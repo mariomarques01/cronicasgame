@@ -17,6 +17,9 @@ var book: TextureRect
 var diamond: TextureRect
 var separator: ColorRect
 var bag_badge: Label
+var quest_summary: Label
+var quest_button: Button
+var quest_chevron: Label
 
 func texture_frame(button_frame: bool = false) -> StyleBoxTexture:
 	var style := StyleBoxTexture.new()
@@ -64,6 +67,18 @@ func build(ui: CanvasLayer) -> void:
 	separator.color = Color(0.78, 0.66, 0.36, 0.3)
 	separator.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui.quest_panel.add_child(separator)
+	quest_summary = make_label(ui, ui.quest_panel, "", 13)
+	quest_summary.add_theme_color_override("font_color", Color("e7eadf"))
+	quest_chevron = make_label(ui, ui.quest_panel, "›", 20)
+	quest_chevron.add_theme_color_override("font_color", Color("efd18a"))
+	quest_button = Button.new()
+	quest_button.tooltip_text = "Ver detalhes da missão"
+	for state in ["normal", "hover", "pressed", "focus"]:
+		quest_button.add_theme_stylebox_override(state, StyleBoxEmpty.new())
+	quest_button.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	quest_button.pressed.connect(ui.open_quest)
+	ui.quest_panel.add_child(quest_button)
+	ui.touch.action_buttons.append(quest_button)
 	profile = Panel.new()
 	profile.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	profile.add_theme_stylebox_override("panel", texture_frame())
@@ -111,15 +126,18 @@ func build(ui: CanvasLayer) -> void:
 	region_count = make_label(ui, regions, "", 13)
 	region_count.position = Vector2(36, 10)
 	settings = Button.new()
-	settings.tooltip_text = "Pausa e opções"
+	settings.tooltip_text = "Configurações"
 	for state in ["normal", "hover", "pressed", "focus"]:
-		var compact_style := texture_frame(true)
-		compact_style.set_content_margin_all(3)
+		var compact_style: StyleBoxFlat = ui.frame_style(Color(0.035, 0.065, 0.06, 0.9), Color("c6a660"), 22)
+		compact_style.set_content_margin_all(7)
+		if state in ["hover", "focus"]:
+			compact_style.border_color = Color("ffe3a0")
 		settings.add_theme_stylebox_override(state, compact_style)
 	settings.icon = load(ART + "gear.svg")
 	settings.expand_icon = true
-	settings.add_theme_constant_override("icon_max_width", 25)
-	settings.pressed.connect(ui.pause_menu)
+	settings.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	settings.add_theme_constant_override("icon_max_width", 28)
+	settings.pressed.connect(ui.settings_menu)
 	ui.hud.add_child(settings)
 	ui.touch.action_buttons.append(settings)
 	minimap = Control.new()
@@ -160,14 +178,19 @@ func refresh(ui: CanvasLayer) -> void:
 	progress_text.text = "Missão  %d / 4 etapas" % game.stage
 	bag_badge.text = str(int(game.inventory.get("ancient_stone", 0)))
 	bag_badge.visible = not game.inventory.is_empty()
+	match game.stage:
+		0: quest_summary.text = "Converse com Lia"
+		1: quest_summary.text = "Pedras antigas: %d / 3" % game.collected.size()
+		2: quest_summary.text = "Leve as pedras a Lia"
+		3: quest_summary.text = "Ative o mecanismo"
+		_: quest_summary.text = "Explore a floresta"
 
 func layout(ui: CanvasLayer, screen: Vector2) -> void:
 	var compact := screen.x < 600
 	var margin := 10.0 if compact else 20.0
 	var short_screen := screen.y < 500
-	var compressed := compact or short_screen
 	var head_height := 50.0 if compact or short_screen else 68.0
-	var profile_width := 172.0 if compact else 282.0
+	var profile_width := minf(172, screen.x * 0.42) if compact else 282.0
 	profile.position = Vector2(margin, 12)
 	profile.size = Vector2(profile_width, head_height)
 	var portrait_size := head_height + 8
@@ -181,7 +204,7 @@ func layout(ui: CanvasLayer, screen: Vector2) -> void:
 	progress.size = Vector2(profile_width - portrait_size - 14, 7)
 	progress_text.position = Vector2(portrait_size + 2, head_height * 0.5 + 9)
 	progress_text.add_theme_font_size_override("font_size", 8 if compact else 11)
-	var settings_size := 34.0 if compact else 42.0
+	var settings_size := 44.0
 	settings.position = Vector2(screen.x - margin - settings_size, 14)
 	settings.size = Vector2(settings_size, settings_size)
 	settings.mouse_filter = Control.MOUSE_FILTER_IGNORE if ui.touch.active else Control.MOUSE_FILTER_STOP
@@ -192,35 +215,36 @@ func layout(ui: CanvasLayer, screen: Vector2) -> void:
 	stones.position = Vector2(regions.position.x - badge_width - 5, 15)
 	for count: Label in [stone_count, region_count]:
 		count.add_theme_font_size_override("font_size", 11 if compact else 14)
-	var map_size := 90.0 if compact else (96.0 if short_screen else 132.0)
-	var quest_y := 78.0 if compact or short_screen else 100.0
+	var map_size := 72.0 if compact else (80.0 if short_screen else 112.0)
+	var quest_y := 72.0 if compact or short_screen else 94.0
 	minimap.position = Vector2(screen.x - margin - map_size, quest_y)
 	minimap.size = Vector2(map_size, map_size)
 	minimap.click_target.mouse_filter = Control.MOUSE_FILTER_IGNORE if ui.touch.active else Control.MOUSE_FILTER_STOP
 	ui.map_button.position = Vector2(minimap.position.x - 3, quest_y + map_size + 5)
-	ui.map_button.size = Vector2(map_size + 6, 32)
+	ui.map_button.size = Vector2(map_size + 6, 28)
 	ui.map_button.text = "Voltar" if ui.world.map_camera.current else "Mapa"
 	ui.map_button.add_theme_font_size_override("font_size", 12 if compact else 15)
 	ui.quest_panel.position = Vector2(margin, quest_y)
-	ui.quest_panel.size = Vector2(screen.x - map_size - margin * 2 - 12 if compact else 380, 132 if compact or short_screen else 164)
+	ui.quest_panel.size = Vector2(minf(252, screen.x - map_size - margin * 2 - 12) if compact else 310, 58)
 	var eyebrow: Label = ui.quest_panel.get_child(0)
-	eyebrow.position = Vector2(42, 13)
-	eyebrow.add_theme_font_size_override("font_size", 12 if compact else 15)
-	book.position = Vector2(15, 9)
-	ui.quest_title.position = Vector2(18, 38)
-	ui.quest_title.add_theme_font_size_override("font_size", 13 if compact else 19)
-	separator.position = Vector2(18, 64 if compressed else 73)
-	separator.size = Vector2(ui.quest_panel.size.x - 36, 1)
-	ui.objective.position = Vector2(39, 74 if compressed else 87)
-	ui.objective.size.x = ui.quest_panel.size.x - 51
-	ui.objective.add_theme_font_size_override("font_size", 12 if compact else 15)
-	diamond.position = Vector2(12, 73 if compressed else 87)
-	ui.quest_progress.position = Vector2(20, 109 if compressed else 136)
-	ui.quest_progress.add_theme_font_size_override("font_size", 9 if compact else 12)
+	eyebrow.text = "Missão principal"
+	eyebrow.position = Vector2(34, 9)
+	eyebrow.add_theme_font_size_override("font_size", 10)
+	book.position = Vector2(11, 10)
+	book.size = Vector2(18, 18)
+	quest_summary.position = Vector2(34, 28)
+	quest_summary.add_theme_font_size_override("font_size", 13)
+	quest_chevron.position = Vector2(ui.quest_panel.size.x - 22, 17)
+	quest_button.mouse_filter = Control.MOUSE_FILTER_IGNORE if ui.touch.active else Control.MOUSE_FILTER_STOP
+	ui.quest_title.hide()
+	ui.objective.hide()
+	ui.quest_progress.hide()
+	separator.hide()
+	diamond.hide()
 	ui.message.position.y = quest_y + ui.quest_panel.size.y + 10
 	ui.desktop_actions.visible = not ui.touch.active and not compact
 	ui.desktop_actions.position = Vector2(screen.x - ui.desktop_actions.size.x - margin, screen.y - 62)
 	for i in ui.mobile_buttons.get_child_count():
 		var action: Button = ui.mobile_buttons.get_child(i)
 		action.size = Vector2(74, 76)
-		action.position = Vector2(screen.x - (94 if i in [0, 3] else 174), screen.y - (100 if i in [0, 1] else 184))
+		action.position = Vector2(screen.x - (174 if i == 1 else 94), screen.y - (184 if i == 2 else 100))

@@ -135,7 +135,6 @@ func _ready() -> void:
 		if not world.nearest.is_empty():
 			world.interact(world.nearest))
 	mobile_button("Mochila", Vector2(-174,-160), open_inventory)
-	mobile_button("Pausa", Vector2(-94,-160), pause_menu)
 	desktop_actions = HBoxContainer.new()
 	desktop_actions.add_theme_constant_override("separation", 8)
 	hud.add_child(desktop_actions)
@@ -145,7 +144,7 @@ func _ready() -> void:
 	map_button.pressed.connect(world.toggle_map)
 	desktop_actions.add_child(map_button)
 	touch.action_buttons.append(map_button)
-	for spec: Dictionary in [{"text": "Mochila · I", "callback": open_inventory}, {"text": "Pausa · Esc", "callback": pause_menu}]:
+	for spec: Dictionary in [{"text": "Mochila · I", "callback": open_inventory}]:
 		var action := Button.new()
 		action.text = spec.text
 		action.custom_minimum_size = Vector2(90, 40)
@@ -228,11 +227,26 @@ func pause_menu() -> void:
 		if Game.load_game():
 			world.player.position = Game.player_position
 			show_play())
-	button("Alternar ciclo dia / noite", func(): world.day_speed = world.DAY_SPEED if world.day_speed == 0 else 0.0)
-	button("Alternar sombras", func(): world.sun.shadow_enabled = not world.sun.shadow_enabled)
 	button("Menu inicial", func():
 		world.playing = false
 		main_menu())
+
+func settings_menu() -> void:
+	clear_menu("Configurações")
+	button("Pausar jogo", pause_menu)
+	button("Alternar ciclo dia / noite", func(): world.day_speed = world.DAY_SPEED if world.day_speed == 0 else 0.0)
+	button("Alternar sombras", func(): world.sun.shadow_enabled = not world.sun.shadow_enabled)
+	button("Voltar ao jogo", show_play)
+
+func open_quest() -> void:
+	clear_menu("O Chamado da Floresta")
+	var body := label(Game.objective(), 18)
+	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.add_child(body)
+	var progress_note := label(quest_progress.text, 15)
+	progress_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	content.add_child(progress_note)
+	button("Voltar ao jogo", show_play)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if not world.playing:

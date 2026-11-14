@@ -8,7 +8,10 @@ O ciclo solar agora dura aproximadamente 28 minutos, com ambiente e céu
 acompanhando o dia e a noite.
 
 O HUD usa molduras douradas, retrato do próprio coelho, missão, minimapa circular
-do mundo real e botões com ícones. A barra mostra etapas da missão; os contadores
+do mundo real e botões com ícones. A missão aparece em uma faixa compacta; toque
+para ver os detalhes. A engrenagem abre Configurações, onde fica a opção de
+pausar. O HUD móvel mantém somente Mochila, Interagir e Pular. A barra mostra
+etapas da missão; os contadores
 mostram pedras antigas e regiões abertas. Não são vida, XP ou moedas: esses
 sistemas ainda não existem. Mochila, pausa, interação, pulo e mapa continuam
 funcionais, com disposição própria para celular.
