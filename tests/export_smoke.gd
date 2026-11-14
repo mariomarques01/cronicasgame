@@ -32,6 +32,8 @@ func run() -> void:
 		quit(1)
 		return
 	check(world.ui.ornament.minimap.viewport.world_3d == world.get_world_3d(), "Minimapa funcional incluído no pacote")
+	check(not ResourceLoader.exists("res://assets/models/bunny_animated.glb") and not ResourceLoader.exists("res://assets/models/Jumping.fbx"), "Personagens de alta densidade fora do pacote")
+	check(world.player.avatar.animation_player.has_animation("Jumping") and world.player.avatar.animation_player.has_animation("JumpLanding"), "Pulo e contato pré-processados presentes no pacote")
 	check_texture_budget(world)
 	check(not ResourceLoader.exists("res://assets/models/golden_acres.glb"), "Pacote não inclui a fazenda original substituída")
 	check(not ResourceLoader.exists("res://assets/models/farm_without_fences.res"), "Malha antiga com pedras/flores fora do pacote")

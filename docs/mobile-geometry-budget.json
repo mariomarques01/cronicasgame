@@ -1,0 +1,55 @@
+{
+  "baseline_commit": "1e2eeeec6d1358f08c1ea1affd96bea02f2d19bd",
+  "metric": "All instantiated mesh triangles, including offscreen instances, excluding additional shadow passes",
+  "before_triangles": 4861140,
+  "after_triangles": 1218804,
+  "modules": {
+    "forest_tree": {
+      "before": 15716,
+      "after": 1400
+    },
+    "farm_pine": {
+      "before": 15716,
+      "after": 1800
+    },
+    "mossy_fence": {
+      "before": 4394,
+      "after": 2399
+    },
+    "cabbage": {
+      "before": 9170,
+      "after": 1000
+    },
+    "carrots": {
+      "before": 24022,
+      "after": 1300
+    },
+    "bunny": {
+      "before": 127420,
+      "after": 18000
+    }
+  },
+  "source_assets_unchanged": true,
+  "native_comparison": {
+    "renderer": "Mesa llvmpipe OpenGL 4.5, software",
+    "viewport": [
+      640,
+      360
+    ],
+    "samples_per_case": 12,
+    "warmup_frames": 5,
+    "scope": "Only geometry swapped; identical camera, cell culling, lighting and shadow settings. Static scene; not a phone FPS benchmark.",
+    "results": {
+      "optimized_geometry": {
+        "median_ms": 689.052,
+        "p95_ms": 741.734,
+        "render_primitives": 1187908.0
+      },
+      "original_geometry": {
+        "median_ms": 1361.82,
+        "p95_ms": 1406.455,
+        "render_primitives": 2887926.0
+      }
+    }
+  }
+}

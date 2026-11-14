@@ -43,6 +43,7 @@ func _ready() -> void:
 		var batch := MultiMeshInstance3D.new()
 		batch.name = "Cabbages" if crop == "cabbage" else "Carrots"
 		batch.multimesh = instances
+		batch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(batch)
 		crop_counts[crop] = transforms.size()
 

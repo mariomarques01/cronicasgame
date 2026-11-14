@@ -97,6 +97,7 @@ func build_batches() -> void:
 				body.add_child(shape)
 			batch.multimesh = instances
 			if not inside:
-				batch.visibility_range_end = 125.0
-				batch.visibility_range_end_margin = 12.0
+				batch.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				batch.visibility_range_end = 90.0
+				batch.visibility_range_end_margin = 10.0
 			add_child(batch)
