@@ -57,16 +57,30 @@ func _ready() -> void:
 					shape.transform = Transform3D(Basis(along, Vector3.UP, across), origin + Vector3.UP * HEIGHT * 0.5)
 					collisions.add_child(shape)
 			offset += length
-	var instances := MultiMesh.new()
-	instances.transform_format = MultiMesh.TRANSFORM_3D
-	instances.mesh = FENCE
-	instances.instance_count = transforms.size()
-	for i in transforms.size():
-		instances.set_instance_transform(i, transforms[i])
-	var batch := MultiMeshInstance3D.new()
-	batch.multimesh = instances
-	batch.name = "FenceSections"
-	add_child(batch)
+	# Cull by nearby cells instead of drawing every fence section whenever any is visible.
+	var batches := Node3D.new()
+	batches.name = "FenceSections"
+	add_child(batches)
+	var cells: Dictionary = {}
+	for placement: Transform3D in transforms:
+		var cell := Vector2i(floori(placement.origin.x / 16.0), floori(placement.origin.z / 16.0))
+		if not cells.has(cell): cells[cell] = []
+		cells[cell].append(placement)
+	for cell: Vector2i in cells:
+		var batch := MultiMeshInstance3D.new()
+		batch.position = Vector3(cell.x * 16.0, 0, cell.y * 16.0)
+		var instances := MultiMesh.new()
+		instances.transform_format = MultiMesh.TRANSFORM_3D
+		instances.mesh = FENCE
+		instances.instance_count = cells[cell].size()
+		for i in instances.instance_count:
+			var placement: Transform3D = cells[cell][i]
+			placement.origin -= batch.position
+			instances.set_instance_transform(i, placement)
+		batch.multimesh = instances
+		batch.visibility_range_end = 95.0
+		batch.visibility_range_end_margin = 10.0
+		batches.add_child(batch)
 	section_count = transforms.size()
 	build_south_entry()
 

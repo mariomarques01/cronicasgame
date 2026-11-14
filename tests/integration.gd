@@ -114,8 +114,13 @@ func run() -> void:
 	check(world.get_world_3d().direct_space_state.intersect_ray(west_walkway).is_empty(), "Caminho oeste junto à casa permanece livre")
 	var fence_layout := world.get_node("GoldenAcres/MossyGardenFences")
 	check(fence_layout.section_count > 100, "Cerca Mossy Garden substitui cercados distribuídos pelo mapa")
-	var fence_batch: MultiMeshInstance3D = fence_layout.get_node("FenceSections")
-	check(fence_batch.multimesh.instance_count == fence_layout.section_count and fence_batch.multimesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3 <= 5000, "Seções compartilham módulo simplificado para celular")
+	var fence_sections: Node3D = fence_layout.get_node("FenceSections")
+	var fence_count := 0
+	var fence_budget := true
+	for batch: MultiMeshInstance3D in fence_sections.get_children():
+		fence_count += batch.multimesh.instance_count
+		fence_budget = fence_budget and batch.multimesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX].size() / 3 <= 2600
+	check(fence_count == fence_layout.section_count and fence_budget, "Células de cerca preservam seções e orçamento de geometria")
 	var fence_body: StaticBody3D = fence_layout.get_node("MossyFenceCollisions")
 	check(fence_body.get_child_count() == fence_layout.section_count, "Cada seção de cerca tem colisão correspondente")
 	var fence_ray := PhysicsRayQueryParameters3D.create(Vector3(-30, 0.8, 24.75), Vector3(-25, 0.8, 24.75))
@@ -351,6 +356,7 @@ func run() -> void:
 	await check_compact_hud(world)
 	await check_third_person_controls(world)
 	await check_runtime_budget(world)
+	check_geometry_budget(world)
 	if not previous.is_empty():
 		file = FileAccess.open(game.SAVE_PATH, FileAccess.WRITE)
 		file.store_string(previous)
@@ -894,3 +900,36 @@ func check_runtime_budget(world: Node3D) -> void:
 		await process_frame
 	check(world.ui.menu.visible and not world.player.enabled, "Layout sob demanda preserva abertura de configurações")
 	world.ui.show_play()
+
+func check_geometry_budget(world: Node3D) -> void:
+	var total := 0
+	for node: Node in world.find_children("*", "", true, false):
+		var mesh: Mesh
+		var copies := 1
+		if node is MeshInstance3D:
+			mesh = node.mesh
+		elif node is MultiMeshInstance3D:
+			mesh = node.multimesh.mesh
+			copies = node.multimesh.instance_count
+		if mesh == null: continue
+		for surface in mesh.get_surface_count():
+			var arrays := mesh.surface_get_arrays(surface)
+			var indices: int = arrays[Mesh.ARRAY_INDEX].size() if arrays[Mesh.ARRAY_INDEX] != null else 0
+			total += (indices if indices > 0 else arrays[Mesh.ARRAY_VERTEX].size()) / 3 * copies
+	check(total < 1300000, "Geometria total instanciada permanece abaixo de 1,3 milhão de triângulos")
+	var character := world.player.avatar.model.find_children("*", "MeshInstance3D", true, false)[0] as MeshInstance3D
+	check(character.mesh.get_faces().size() / 3 < 20000, "Coelho animado usa menos de 20 mil triângulos")
+	var skin_ok := character.skin != null and character.skin.get_bind_count() == 32
+	var skeleton := character.get_node(character.skeleton) as Skeleton3D
+	for bind in character.skin.get_bind_count():
+		skin_ok = skin_ok and skeleton.find_bone(character.skin.get_bind_name(bind)) >= 0
+	check(skin_ok, "Malha simplificada mantém os 32 vínculos do esqueleto original")
+	var cells: Node3D = world.get_node("GoldenAcres/MossyGardenFences/FenceSections")
+	check(cells.get_child_count() > 8, "Cercas divididas em células permitem descarte fora da visão")
+	var maximum := 0
+	for cell: MultiMeshInstance3D in cells.get_children(): maximum = maxi(maximum, cell.multimesh.instance_count)
+	check(maximum < 30, "Uma célula visível não obriga desenhar todas as 192 cercas")
+	check(world.sun.directional_shadow_mode == DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS and world.sun.directional_shadow_max_distance <= 45, "Sombras direcionais têm duas passagens e alcance limitado")
+	for crop: String in ["Cabbages", "Carrots"]:
+		var batch: MultiMeshInstance3D = world.get_node("GoldenAcres/CultivatedPlants/" + crop)
+		check(batch.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and batch.multimesh.mesh.get_faces().size() / 3 <= 1400, "Plantação mantém orçamento leve de geometria e sombras: " + crop)

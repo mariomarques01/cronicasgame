@@ -69,7 +69,8 @@ func _ready() -> void:
 	sun.shadow_bias = 0.035
 	sun.directional_shadow_blend_splits = true
 	sun.shadow_enabled = true
-	sun.directional_shadow_max_distance = 85
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+	sun.directional_shadow_max_distance = 45
 	add_child(sun)
 	build_farm()
 	build_vegetation()
