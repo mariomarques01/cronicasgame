@@ -90,9 +90,10 @@ func _set_idle_pose() -> void:
 	animation_player.seek(0.0, true)
 	animation_player.pause()
 
-func animate(delta: float, moving: bool, running: bool, grounded: bool = true, vertical_velocity: float = NAN) -> void:
+func animate(delta: float, moving: bool, running: bool, grounded: bool = true, vertical_velocity: float = NAN, locomotion_speed: float = NAN) -> void:
 	if animation_player == null:
 		return
+	animation_player.speed_scale = 1.0
 	if not grounded:
 		if not airborne:
 			# Ignore momentary floor loss on uneven terrain, but jump immediately.
@@ -130,5 +131,7 @@ func animate(delta: float, moving: bool, running: bool, grounded: bool = true, v
 			_set_idle_pose()
 		return
 	var clip := "Running" if running else "Walking"
+	if is_finite(locomotion_speed):
+		animation_player.speed_scale = clampf(locomotion_speed / (8.0 if running else 4.5), 0.25, 1.3)
 	if animation_player.current_animation != clip or not animation_player.is_playing():
 		animation_player.play(clip, 0.12)

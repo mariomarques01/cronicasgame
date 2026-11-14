@@ -332,8 +332,7 @@ func run() -> void:
 	world.player.velocity = Vector3.ZERO
 	world.player.camera_yaw = 0.0
 	world.player.yaw.rotation.y = 0.0
-	world.player.touch_axis = Vector2(0, -1)
-	world.player.touch_running = false
+	world.player.touch_axis = Vector2(0, -0.5625)
 	for i in range(220):
 		await physics_frame
 	world.player.touch_axis = Vector2.ZERO
@@ -342,7 +341,7 @@ func run() -> void:
 	world.player.velocity = Vector3.ZERO
 	world.player.camera_yaw = -PI / 2
 	world.player.yaw.rotation.y = -PI / 2
-	world.player.touch_axis = Vector2(0, -1)
+	world.player.touch_axis = Vector2(0, -0.5625)
 	for i in range(150):
 		await physics_frame
 	world.player.touch_axis = Vector2.ZERO
@@ -350,6 +349,7 @@ func run() -> void:
 	await check_hud_layout(world)
 	await check_retina_hud(world)
 	await check_compact_hud(world)
+	await check_third_person_controls(world)
 	if not previous.is_empty():
 		file = FileAccess.open(game.SAVE_PATH, FileAccess.WRITE)
 		file.store_string(previous)
@@ -513,6 +513,20 @@ func check_retina_hud(world: Node3D) -> void:
 			press.pressed = false
 			root.push_input(press, false)
 			check(world.player.touch_axis == Vector2.ZERO, "Soltar joystick libera movimento em " + description)
+			world.player.camera_yaw = 0
+			var look_point := Vector2(css_size) * Vector2(0.6, 0.5)
+			press.index = 2
+			press.pressed = true
+			press.position = screen_transform * look_point
+			root.push_input(press, false)
+			drag.index = 2
+			drag.position = screen_transform * (look_point + Vector2(40, 0))
+			drag.relative = screen_transform.basis_xform(Vector2(40, 0))
+			root.push_input(drag, false)
+			var expected_yaw := -40.0 * PI / maxf(320.0, minf(css_size.x, css_size.y))
+			check(absf(world.player.camera_yaw - expected_yaw) < 0.001, "Câmera transforma arrasto físico com sensibilidade constante em " + description)
+			press.pressed = false
+			root.push_input(press, false)
 	# A transient hidden canvas must not collapse a valid layout.
 	var valid_design := root.content_scale_size
 	scaler.apply_css_size(root, Vector2i.ZERO)
@@ -587,3 +601,217 @@ func check_compact_hud(world: Node3D) -> void:
 	root.size = original_size
 	world.ui.touch.active = original_touch
 	world.ui.show_play()
+
+
+func control_touch(world: Node3D, index: int, point: Vector2, pressed: bool, canceled: bool = false) -> void:
+	var event := InputEventScreenTouch.new()
+	event.index = index
+	event.position = point
+	event.pressed = pressed
+	event.canceled = canceled
+	root.push_input(event, true)
+
+func control_drag(index: int, point: Vector2, relative: Vector2) -> void:
+	var event := InputEventScreenDrag.new()
+	event.index = index
+	event.position = point
+	event.relative = relative
+	root.push_input(event, true)
+
+func settle_control_player(world: Node3D, floor_body: StaticBody3D) -> void:
+	for action in ["forward", "back", "left", "right", "run", "jump"]:
+		Input.action_release(action)
+	floor_body.collision_layer = 1
+	world.ui.show_play()
+	world.ui.touch.reset()
+	world.player.position = Vector3(0, 60.03, 0)
+	world.player.velocity = Vector3.ZERO
+	world.player.camera_yaw = 0.0
+	world.player.yaw.rotation.y = 0.0
+	for frame in 12:
+		await physics_frame
+
+func check_third_person_controls(world: Node3D) -> void:
+	# Real character physics on a broad platform above the farm: no props interfere.
+	var platform := StaticBody3D.new()
+	platform.position.y = 59.5
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(80, 1, 80)
+	collision.shape = shape
+	platform.add_child(collision)
+	world.add_child(platform)
+	var player: CharacterBody3D = world.player
+	var touch: Control = world.ui.touch
+	var original_touch: bool = touch.active
+	touch.active = true
+	await settle_control_player(world, platform)
+	check(player.is_on_floor(), "Plataforma de teste apoia o controlador real")
+	player.touch_axis = Vector2(0, -0.25)
+	await physics_frame
+	check(player.movement_speed > 0 and player.movement_speed < 2, "Aceleração começa progressivamente, sem salto imediato de velocidade")
+	for frame in 30:
+		await physics_frame
+	var slow_speed: float = player.movement_speed
+	var slow_animation: float = player.avatar.animation_player.speed_scale
+	check(absf(slow_speed - 2.0) < 0.1, "Um quarto do analógico produz um quarto da velocidade máxima")
+	player.touch_axis = Vector2(0, -1)
+	for frame in 30:
+		await physics_frame
+	check(absf(player.movement_speed - player.RUN_SPEED) < 0.1 and player.state == "run", "Borda do analógico chega à corrida com animação correspondente")
+	check(player.avatar.animation_player.speed_scale > slow_animation, "Ritmo da animação acompanha a velocidade real")
+	player.touch_axis = Vector2(1, -1)
+	for frame in 30:
+		await physics_frame
+	check(player.movement_speed <= player.RUN_SPEED + 0.01, "Diagonal não ultrapassa a velocidade máxima")
+	var brake_start: Vector3 = player.position
+	player.touch_axis = Vector2.ZERO
+	for frame in 15:
+		await physics_frame
+	check(player.movement_speed < 0.05 and player.state == "idle", "Soltar analógico freia e entra em repouso")
+	check(player.position.distance_to(brake_start) < 0.8, "Frenagem não deixa o personagem deslizar por metros")
+	await settle_control_player(world, platform)
+	player.camera_yaw = PI / 2
+	player.yaw.rotation.y = PI / 2
+	player.touch_axis = Vector2(0, -0.5)
+	for frame in 30:
+		await physics_frame
+	check(player.velocity.x < -3.8 and absf(player.velocity.z) < 0.1, "Mover para frente acompanha a direção visível da câmera")
+	await settle_control_player(world, platform)
+	Input.action_press("forward")
+	for frame in 30:
+		await physics_frame
+	check(absf(player.movement_speed - player.WALK_SPEED) < 0.1, "Teclado preserva a velocidade de caminhada")
+	Input.action_press("run")
+	for frame in 20:
+		await physics_frame
+	check(absf(player.movement_speed - player.RUN_SPEED) < 0.1, "Shift acelera até a corrida")
+	Input.action_release("forward")
+	Input.action_release("run")
+	world.ui.settings_menu()
+	for frame in 2:
+		await physics_frame
+	world.ui.show_play()
+	for frame in 2:
+		await physics_frame
+	check(player.movement_speed < 0.05, "Retomar de um menu não reaplica impulso de movimento antigo")
+	await settle_control_player(world, platform)
+	var feedback := world.get_node("LandingFeedback")
+	var impacts_before: int = feedback.trigger_count
+	player.touch_jump = true
+	for frame in 50:
+		await physics_frame
+	check(feedback.trigger_count > impacts_before, "Aterrissagem real produz feedback visual de contato")
+	world.ui.settings_menu()
+	for frame in 2:
+		await process_frame
+	var feedback_paused := true
+	for burst: CPUParticles3D in feedback.bursts:
+		feedback_paused = feedback_paused and is_zero_approx(burst.speed_scale)
+	check(feedback_paused, "Poeira de impacto respeita a pausa dos menus")
+	await settle_control_player(world, platform)
+	var step_body := StaticBody3D.new()
+	step_body.position = Vector3(0, 60.1, -3)
+	var step_collision := CollisionShape3D.new()
+	var step_shape := BoxShape3D.new()
+	step_shape.size = Vector3(3, 0.2, 1)
+	step_collision.shape = step_shape
+	step_body.add_child(step_collision)
+	world.add_child(step_body)
+	player.touch_axis = Vector2(0, -0.5625)
+	var maximum_step_y := player.position.y
+	impacts_before = feedback.trigger_count
+	for frame in 65:
+		await physics_frame
+		maximum_step_y = maxf(maximum_step_y, player.position.y)
+	check(player.position.z < -3.8 and maximum_step_y > 60.15 and maximum_step_y < 60.32, "Controlador transpõe degrau baixo sem precisar pular")
+	check(feedback.trigger_count == impacts_before, "Pequenos desníveis não disparam impactos fortes a cada passo")
+	step_body.position.y = 60.4
+	step_shape.size.y = 0.8
+	await settle_control_player(world, platform)
+	player.touch_axis = Vector2(0, -0.5625)
+	for frame in 65:
+		await physics_frame
+	check(player.position.z > -2.5 and player.position.y < 60.1, "Obstáculo alto permanece bloqueado, sem atravessar ou escalar a colisão")
+	step_body.queue_free()
+	await settle_control_player(world, platform)
+	platform.collision_layer = 0
+	for frame in 2:
+		await physics_frame
+	check(not player.is_on_floor(), "Controlador perdeu o apoio antes do teste de tolerância")
+	player.touch_jump = true
+	for frame in 2:
+		await physics_frame
+	check(player.velocity.y > 5, "Salto ainda responde logo após perder o apoio")
+	await settle_control_player(world, platform)
+	platform.collision_layer = 0
+	for frame in 15:
+		await physics_frame
+	player.touch_jump = true
+	for frame in 2:
+		await physics_frame
+	check(player.velocity.y < 0, "Tolerância de borda expira e não permite pular indefinidamente no ar")
+	platform.collision_layer = 1
+	player.position = Vector3(0, 60.22, 0)
+	player.velocity = Vector3(0, -2, 0)
+	player.touch_jump = true
+	for frame in 12:
+		await physics_frame
+	check(player.velocity.y > 0 and player.position.y > 60.2, "Salto apertado antes de pousar é executado ao tocar o chão")
+	await settle_control_player(world, platform)
+	var origin := Vector2(70, root.get_visible_rect().size.y - 180)
+	control_touch(world, 0, origin, true)
+	check(touch.stick_id == 0 and touch.stick_center == origin and player.touch_axis == Vector2.ZERO, "Joystick flutuante começa sob o dedo sem disparar movimento")
+	control_drag(0, origin + Vector2(4, 0), Vector2(4, 0))
+	check(player.touch_axis == Vector2.ZERO, "Zona morta elimina pequenas oscilações do polegar")
+	control_drag(0, origin + Vector2(30, 0), Vector2(26, 0))
+	check(player.touch_axis.x > 0.3 and player.touch_axis.x < 0.6, "Meio curso do joystick mantém intensidade intermediária")
+	var held_axis: Vector2 = player.touch_axis
+	var look_origin := Vector2(root.get_visible_rect().size.x * 0.7, root.get_visible_rect().size.y * 0.5)
+	control_touch(world, 1, look_origin, true)
+	var yaw_before: float = player.camera_yaw
+	control_drag(1, look_origin + Vector2(40, 0), Vector2(40, 0))
+	check(absf(player.camera_yaw - yaw_before) > 0.05 and player.touch_axis == held_axis, "Segundo dedo gira a câmera enquanto o primeiro mantém movimento")
+	control_touch(world, 2, touch.action_buttons[0].get_global_rect().get_center(), true)
+	check(player.touch_jump and touch.look_id == 1 and touch.stick_id == 0, "Terceiro dedo pula sem roubar joystick ou câmera")
+	control_touch(world, 2, Vector2.ZERO, false)
+	control_touch(world, 1, look_origin, false)
+	control_touch(world, 0, origin, false)
+	check(player.touch_axis == Vector2.ZERO and touch.look_id == -1, "Soltar os dedos encerra movimento e câmera")
+	var badge_point: Vector2 = world.ui.ornament.regions.get_global_rect().get_center()
+	control_touch(world, 3, badge_point, true)
+	check(touch.look_id == -1, "Toque nos indicadores do HUD não inicia rotação da câmera")
+	control_touch(world, 3, badge_point, false)
+	control_touch(world, 0, origin, true)
+	control_touch(world, 0, origin, true, true)
+	check(touch.stick_id == -1 and player.touch_axis == Vector2.ZERO, "Cancelamento de toque libera o joystick")
+	player.touch_axis = Vector2.ZERO
+	player.camera_yaw = 0
+	player.rotate_touch_camera(Vector2(100, 0), Vector2(390, 844))
+	var portrait_yaw: float = player.camera_yaw
+	player.camera_yaw = 0
+	player.rotate_touch_camera(Vector2(100, 0), Vector2(844, 390))
+	check(is_equal_approx(player.camera_yaw, portrait_yaw), "Sensibilidade de arrasto é consistente entre retrato e paisagem")
+	player.avatar.rotation.y = -1.2
+	player.center_camera()
+	check(is_equal_approx(player.camera_yaw, -1.2) and is_equal_approx(player.camera_pitch, player.CAMERA_DEFAULT_PITCH), "Centralizar coloca a câmera atrás da orientação do personagem")
+	world.toggle_map()
+	player.center_camera()
+	check(player.camera.current and not world.map_camera.current, "Centralizar retorna do mapa para a câmera em terceira pessoa")
+	touch.reset()
+	touch.active = original_touch
+	platform.queue_free()
+	player.position = world.ground(-30, 11, 0.05)
+	player.velocity = Vector3(2, 0, 1)
+	world.interact("lia")
+	var lia: StaticBody3D = world.get_node("Lia")
+	var toward_lia: Vector3 = (lia.global_position - player.global_position).normalized()
+	check(not player.enabled and Vector2(player.velocity.x, player.velocity.z).is_zero_approx(), "Conversar com Lia interrompe o movimento sem impulso residual")
+	check((-player.avatar.basis.z).dot(toward_lia) > 0.99, "Personagem se volta para Lia ao iniciar a conversa")
+	check(lia.visual.basis.z.normalized().dot(-toward_lia) > 0.99, "Lia se volta para o personagem durante a interação")
+	var npc_bounds: AABB = lia.visual.transform * lia.visual.mesh.get_aabb()
+	check(Vector2(npc_bounds.get_center().x, npc_bounds.get_center().z).length() < 0.01, "Giro de Lia mantém a malha alinhada à colisão")
+	world.ui.show_play()
+	player.position = world.ground(-29, 26, 1)
+	player.velocity = Vector3.ZERO
+	await physics_frame

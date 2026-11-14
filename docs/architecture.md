@@ -1,7 +1,7 @@
 # Arquitetura
 
 - `scenes/main/main.tscn`: entrada; composição do protótipo por código.
-- `scripts/player/player.gd`: CharacterBody3D, gravidade, estados idle/walk/run/air, câmera com yaw independente, pitch limitado e SpringArm3D com esfera de colisão excluindo o próprio corpo.
+- `scripts/player/player.gd`: CharacterBody3D com intensidade analógica, aceleração/frenagem, assistência ao salto, estados idle/walk/run/air e câmera orbital com antecipação, centralização e SpringArm3D. Aterrissagens emitem sinal para `landing_feedback.gd`, que reutiliza pequenos emissores de poeira; colisões permitem transpor apenas degraus baixos com teto e apoio livres. `touch_controls.gd` separa joystick flutuante, câmera e botões por dedo.
 - `scripts/world/terrain.gd`: terreno 256 × 256 m, grade de 4 m, altura determinística (seed 7421), normais, cores e colisão trimesh; gerado uma vez. Expansão para setores ainda não implementada.
 - `scripts/world/world.gd`: composição da fazenda, marcos, vegetação MultiMesh, alvos de interação, portão e ciclo solar. Limite lógico ao norte acompanha a barreira física até a missão terminar, impedindo contornar a progressão pelas laterais.
 - `scripts/systems/game.gd`: autoload do estado, sinais, missão, inventário e save versionado. JSON temporário seguido de renomeação. Carga valida esquema, IDs, duplicatas, posição, contagens e consistência da progressão antes de alterar o estado atual.

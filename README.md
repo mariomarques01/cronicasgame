@@ -1,5 +1,16 @@
 # As Crônicas de Eldervale — O Segredo da Árvore Celestial
 
+## Controle em terceira pessoa
+
+No celular, o joystick flutuante nasce sob o dedo na região inferior esquerda:
+arrasto curto anda devagar e arrasto maior corre. Use o dedo direito para girar
+a câmera; movimento, câmera e pulo funcionam juntos. Há aceleração/frenagem
+gradual e uma pequena tolerância ao pular perto de bordas ou antes de pousar.
+
+No teclado, WASD anda e Shift corre. **R** centraliza a câmera; no celular,
+use **Configurações → Centralizar câmera**. A adaptação foi estudada a partir do
+SuperMak64 com REA; veja [evidências e validação](docs/third-person-controls.md).
+
 ## Revisão visual e HUD de fantasia
 
 O cenário recebeu uma paleta de grama menos saturada, caminhos com variação de

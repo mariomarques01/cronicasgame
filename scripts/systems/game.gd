@@ -15,7 +15,7 @@ var last_error: String = ""
 func _ready() -> void:
 	quest = JSON.parse_string(FileAccess.get_file_as_string("res://data/quests/forest_call.json"))
 	stone_definition = JSON.parse_string(FileAccess.get_file_as_string("res://data/items/ancient_stone.json"))
-	var keys := {"forward": KEY_W, "back": KEY_S, "left": KEY_A, "right": KEY_D, "run": KEY_SHIFT, "jump": KEY_SPACE, "interact": KEY_E, "inventory": KEY_I, "pause": KEY_ESCAPE, "save": KEY_F5, "load": KEY_F9}
+	var keys := {"forward": KEY_W, "back": KEY_S, "left": KEY_A, "right": KEY_D, "run": KEY_SHIFT, "jump": KEY_SPACE, "interact": KEY_E, "inventory": KEY_I, "pause": KEY_ESCAPE, "save": KEY_F5, "load": KEY_F9, "camera_center": KEY_R}
 	for action: String in keys:
 		if not InputMap.has_action(action):
 			InputMap.add_action(action)

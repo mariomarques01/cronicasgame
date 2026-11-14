@@ -125,6 +125,7 @@ func build(ui: CanvasLayer) -> void:
 	art(regions, "region", Vector2(8, 8), Vector2(23, 23))
 	region_count = make_label(ui, regions, "", 13)
 	region_count.position = Vector2(36, 10)
+	ui.touch.look_blockers.append_array([profile, stones, regions])
 	settings = Button.new()
 	settings.tooltip_text = "Configurações"
 	for state in ["normal", "hover", "pressed", "focus"]:

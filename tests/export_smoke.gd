@@ -22,7 +22,7 @@ func run() -> void:
 	var world: Node3D = scene.instantiate()
 	root.add_child(world)
 	await physics_frame
-	for path in ["GoldenAcres/CozyTimberHouse", "GoldenAcres/FarmBuildings/Workshop", "GoldenAcres/FarmBuildings/Barn", "GoldenAcres/FarmBuildings/Windmill/SlowRotor", "Trees", "Lia/WolfCharacter", "MeadowDetails", "ValleyAtmosphere/ValleyEnvironment"]:
+	for path in ["GoldenAcres/CozyTimberHouse", "GoldenAcres/FarmBuildings/Workshop", "GoldenAcres/FarmBuildings/Barn", "GoldenAcres/FarmBuildings/Windmill/SlowRotor", "Trees", "Lia/WolfCharacter", "LandingFeedback", "MeadowDetails", "ValleyAtmosphere/ValleyEnvironment"]:
 		check(world.get_node_or_null(path) != null, "Recurso exportado: " + path)
 	if failures > 0:
 		quit(1)
