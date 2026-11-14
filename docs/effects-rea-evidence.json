@@ -1,0 +1,23 @@
+{
+  "tool": {
+    "name": "rea-agents",
+    "version": "6.9.0",
+    "repository": "https://github.com/morluto/rea"
+  },
+  "source_sha256": "78e0ad9c74b868da293e5ee54471a3a13cb0790be3c5fe4ac2e121c9022e0243",
+  "operation": "extract_artifact",
+  "evidence_id": "ev_5a59776fba7bdbf381203f41fd38639658fc0a4c5e01774847150c15b26f7cc8",
+  "integrity_policy": "fail",
+  "artifacts": [
+    {
+      "artifact_id": "art_23ba5de2b166b396fd59e42e120be8eaedec466da1a241b4cc794c06053966d6",
+      "relative_path": "SuperMak64-Godot/scripts/fx/juice_vfx.json",
+      "sha256": "762237fbf06e6a74bae1672abc8dcf0262a51588842f0d28515ae9c0144d5f28",
+      "bytes_written": 55862,
+      "created": true
+    }
+  ],
+  "containment_verified": true,
+  "integrity_contradictions": [],
+  "analysis": "Static source inspection; original SuperMak was not executed. Own implementation and generated particle materials; no reference assets included."
+}

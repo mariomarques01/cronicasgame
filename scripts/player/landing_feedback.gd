@@ -1,10 +1,17 @@
 extends Node3D
-## Small original dust bursts at real landings; the avatar owns impact animation.
+## Bounded, reusable gameplay effects. No runtime textures or emitters allocated on contact.
 var player: CharacterBody3D
 var bursts: Array[CPUParticles3D] = []
 var trigger_count := 0
 var cursor := 0
 const MIN_IMPACT := 3.5
+var step_distance := 0.0
+var skid_cooldown := 0.0
+var step_count := 0
+var jump_count := 0
+var skid_count := 0
+var collection_count := 0
+var last_position := Vector3.ZERO
 
 func _ready() -> void:
 	name = "LandingFeedback"
@@ -27,7 +34,7 @@ func _ready() -> void:
 	var mesh := QuadMesh.new()
 	mesh.size = Vector2(0.4, 0.4)
 	mesh.material = mat
-	for i in 3:
+	for i in 8:
 		var burst := CPUParticles3D.new()
 		burst.name = "Dust%d" % i
 		burst.emitting = false
@@ -51,17 +58,65 @@ func _ready() -> void:
 		add_child(burst)
 		bursts.append(burst)
 	player.landed.connect(on_landed)
+	player.jumped.connect(on_jump)
+	player.skidded.connect(on_skid)
+	last_position = player.global_position
 
 func on_landed(impact_speed: float) -> void:
 	if impact_speed < MIN_IMPACT or not player.enabled:
 		return
+	emit_burst(player.global_position, clampf(impact_speed / 8.0, 0.6, 1.5), Color("b8a789"))
+	trigger_count += 1
+
+func emit_burst(at: Vector3, strength: float, tint: Color, sparkling: bool = false) -> void:
 	var burst := bursts[cursor]
 	cursor = (cursor + 1) % bursts.size()
-	burst.global_position = player.global_position + Vector3.UP * 0.08
-	burst.initial_velocity_max = lerpf(0.8, 1.3, clampf((impact_speed - MIN_IMPACT) / 8.0, 0, 1))
+	burst.global_position = at + Vector3.UP * 0.08
+	burst.color = tint
+	burst.amount = 12 if sparkling else 8
+	burst.lifetime = 0.55 if sparkling else 0.35
+	burst.initial_velocity_min = 0.6 * strength
+	burst.initial_velocity_max = 1.3 * strength
+	burst.scale_amount_min = (0.12 if sparkling else 0.3) * strength
+	burst.scale_amount_max = (0.28 if sparkling else 0.6) * strength
+	burst.gravity = Vector3(0, 0.5 if sparkling else -1.0, 0)
 	burst.restart()
 	burst.emitting = true
-	trigger_count += 1
+
+func on_jump() -> void:
+	if not player.enabled:
+		return
+	emit_burst(player.global_position, 0.65, Color("c1b69a"))
+	jump_count += 1
+
+func on_skid() -> void:
+	if skid_cooldown > 0.0 or not player.enabled:
+		return
+	skid_cooldown = 0.28
+	emit_burst(player.global_position, 0.8, Color("b8a789"))
+	skid_count += 1
+
+func on_collection(at: Vector3) -> void:
+	if not player.enabled:
+		return
+	emit_burst(at, 1.1, Color("72e9ff"), true)
+	collection_count += 1
+
+func _physics_process(delta: float) -> void:
+	var distance := Vector2(player.global_position.x - last_position.x, player.global_position.z - last_position.z).length()
+	last_position = player.global_position
+	if not player.enabled:
+		step_distance = 0.0
+		return
+	skid_cooldown = maxf(0.0, skid_cooldown - delta)
+	if player.is_on_floor() and player.movement_speed > 4.9 and distance < 1.0:
+		step_distance += distance
+		if step_distance >= 1.8:
+			step_distance = fmod(step_distance, 1.8)
+			emit_burst(player.global_position, 0.35, Color("b8a789"))
+			step_count += 1
+	else:
+		step_distance = 0.0
 
 func _process(_delta: float) -> void:
 	for burst: CPUParticles3D in bursts:

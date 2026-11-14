@@ -1,5 +1,9 @@
 extends CharacterBody3D
 signal landed(impact_speed: float)
+signal jumped
+signal skidded
+var impact_camera_left := 0.0
+var impact_camera_strength := 0.0
 var yaw: Node3D
 var pitch: SpringArm3D
 var camera: Camera3D
@@ -91,6 +95,9 @@ func _process(delta: float) -> void:
 	update_camera(delta)
 
 func update_camera(delta: float) -> void:
+	impact_camera_left = maxf(0.0, impact_camera_left - delta)
+	# A short vertical settling impulse; never rotate the player's aim.
+	camera.v_offset = -impact_camera_strength * sin((1.0 - impact_camera_left / 0.18) * PI) if impact_camera_left > 0 else 0.0
 	var rotation_weight := 1.0 - exp(-20.0 * delta)
 	yaw.rotation = Vector3(0, lerp_angle(yaw.rotation.y, camera_yaw, rotation_weight), 0)
 	pitch.rotation = Vector3(lerpf(pitch.rotation.x, camera_pitch, rotation_weight), 0, 0)
@@ -129,6 +136,8 @@ func _physics_process(delta: float) -> void:
 	var acceleration := AIR_ACCELERATION
 	if is_on_floor():
 		acceleration = GROUND_BRAKING if axis.is_zero_approx() or horizontal.dot(target) < 0 else GROUND_ACCELERATION
+	if grounded_before and horizontal.length() > 5.5 and (axis.is_zero_approx() or horizontal.dot(target) < -4.0):
+		skidded.emit()
 	horizontal = horizontal.move_toward(target, acceleration * delta)
 	velocity.x = horizontal.x
 	velocity.z = horizontal.y
@@ -141,6 +150,7 @@ func _physics_process(delta: float) -> void:
 		velocity.y -= GRAVITY * delta
 	if _jump_buffer_left > 0 and _coyote_left > 0 and velocity.y <= 0:
 		velocity.y = JUMP_SPEED
+		jumped.emit()
 		_jump_buffer_left = 0.0
 		_coyote_left = 0.0
 	if direction.length() > 0.1:
@@ -151,6 +161,9 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	if not grounded_before and is_on_floor():
 		landed.emit(impact_speed)
+		if impact_speed >= 7.0:
+			impact_camera_left = 0.18
+			impact_camera_strength = clampf((impact_speed - 5.0) * 0.008, 0.0, 0.075)
 	movement_speed = Vector2(velocity.x, velocity.z).length()
 	if movement_speed > 5.6:
 		_running_gait = true

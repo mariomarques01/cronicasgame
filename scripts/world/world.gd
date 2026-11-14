@@ -194,7 +194,10 @@ func interact(id: String) -> void:
 		lia.face_toward(player.global_position)
 		ui.dialogue(Game.talk())
 	elif id.begins_with("stone_"):
-		if not Game.collect(id):
+		var effect_position: Vector3 = stones[id].global_position if stones.has(id) else player.global_position
+		if Game.collect(id):
+			get_node("LandingFeedback").on_collection(effect_position)
+		else:
 			ui.notify("Converse com Lia para investigar as pedras.")
 	elif id == "gate":
 		if Game.activate_gate():

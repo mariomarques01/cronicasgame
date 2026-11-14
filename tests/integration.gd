@@ -202,11 +202,11 @@ func run() -> void:
 	world.player.avatar.animate(0.25, true, true, true)
 	check(animator.current_animation == "Running", "Após absorver aterrissagem retoma corrida")
 	world.player.avatar.animate(0, false, false)
-	check(not world.player.avatar.animation_player.is_playing(), "Parado mantém pose estática")
+	check(animator.current_animation == "Rest", "Repouso usa clipe com transição suave")
 	world.player.avatar.animate(0.03, false, false, false, -0.7)
-	check(animator.assigned_animation == "Walking", "Pequeno desnível não dispara pose de pulo")
+	check(animator.assigned_animation == "Rest", "Pequeno desnível não dispara pose de pulo")
 	world.player.avatar.animate(0.02, false, false, true, 0.0)
-	check(animator.assigned_animation == "Walking", "Retorno de pequeno desnível não provoca agachamento")
+	check(animator.assigned_animation == "Rest", "Retorno de pequeno desnível não provoca agachamento")
 	world.player.enabled = true
 	check(InputMap.has_action("jump") and InputMap.has_action("interact"), "Input Map configurado")
 	check(not game.collect("stone_0"), "Pedras bloqueadas antes da conversa")
@@ -702,6 +702,33 @@ func check_third_person_controls(world: Node3D) -> void:
 	for frame in 50:
 		await physics_frame
 	check(feedback.trigger_count > impacts_before, "Aterrissagem real produz feedback visual de contato")
+	check(feedback.jump_count > 0, "Salto emite poeira somente na decolagem")
+	var pool_size: int = feedback.bursts.size()
+	var collections_before: int = feedback.collection_count
+	feedback.on_collection(player.global_position + Vector3.UP)
+	check(feedback.collection_count == collections_before + 1, "Coleta aciona brilho localizado")
+	for event in 40:
+		feedback.on_landed(12.0)
+	check(feedback.bursts.size() == pool_size and feedback.get_child_count() == pool_size, "Rajadas repetidas mantêm pool fixo sem alocar nós")
+	player.touch_axis = Vector2(0, -1)
+	var steps_before: int = feedback.step_count
+	for frame in 45:
+		await physics_frame
+	check(feedback.step_count > steps_before, "Corrida emite poeira por distância percorrida")
+	player.touch_axis = Vector2.ZERO
+	for frame in 12:
+		await physics_frame
+	check(feedback.skid_count > 0, "Frenagem da corrida emite impacto curto")
+	var stationary_steps: int = feedback.step_count
+	for frame in 12:
+		await physics_frame
+	check(feedback.step_count == stationary_steps, "Repouso não emite poeira de corrida")
+	player.impact_camera_left = 0.18
+	player.impact_camera_strength = 0.05
+	player.update_camera(0.09)
+	check(absf(player.camera.v_offset) > 0.01, "Contato forte produz impulso visual limitado")
+	player.update_camera(0.2)
+	check(is_zero_approx(player.camera.v_offset), "Impulso de contato retorna exatamente à câmera original")
 	world.ui.settings_menu()
 	for frame in 2:
 		await process_frame
@@ -815,3 +842,14 @@ func check_third_person_controls(world: Node3D) -> void:
 	player.position = world.ground(-29, 26, 1)
 	player.velocity = Vector3.ZERO
 	await physics_frame
+	game.reset()
+	world.ui.show_play()
+	var fx := world.get_node("LandingFeedback")
+	var before_collection: int = fx.collection_count
+	world.interact("stone_0")
+	check(fx.collection_count == before_collection, "Coleta bloqueada não dispara brilho")
+	game.talk()
+	world.interact("stone_0")
+	check(fx.collection_count == before_collection + 1 and "stone_0" in game.collected, "Interação aceita aciona brilho e registra a pedra")
+	world.interact("stone_0")
+	check(fx.collection_count == before_collection + 1, "Tentativa duplicada não repete brilho de coleta")

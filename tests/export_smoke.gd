@@ -48,7 +48,10 @@ func run() -> void:
 	check(world.get_node("Trees").tree_count == 157, "Floresta externa reduzida pela metade")
 	game.talk()
 	for id in ["stone_0", "stone_1", "stone_2"]:
-		check(game.collect(id), "Missão no pacote: " + id)
+		var count_before: int = world.get_node("LandingFeedback").collection_count
+		world.interact(id)
+		check(id in game.collected, "Missão no pacote: " + id)
+		check(world.get_node("LandingFeedback").collection_count == count_before + 1, "Coleta no pacote dispara efeito: " + id)
 	game.talk()
 	check(game.activate_gate(), "Missão desbloqueia a passagem")
 	print("PACK RESULTADO: ", failures, " falhas")
