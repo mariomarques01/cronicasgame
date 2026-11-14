@@ -348,6 +348,7 @@ func run() -> void:
 	world.player.touch_axis = Vector2.ZERO
 	check(world.player.position.x > 3 and world.player.is_on_floor(), "Caminha pela frente do celeiro sem travar nas camadas do piso")
 	await check_hud_layout(world)
+	await check_retina_hud(world)
 	if not previous.is_empty():
 		file = FileAccess.open(game.SAVE_PATH, FileAccess.WRITE)
 		file.store_string(previous)
@@ -459,6 +460,65 @@ func check_hud_layout(world: Node3D) -> void:
 			await process_frame
 		check(screen.encloses(world.ui.menu.get_global_rect()), "Menu de pausa cabe na tela em " + str(viewport_size))
 		check(is_zero_approx(world.atmosphere.motes.speed_scale), "Partículas respeitam pausa em " + str(viewport_size))
+	root.size = original_size
+	world.ui.touch.active = original_touch
+	world.ui.show_play()
+
+func check_retina_hud(world: Node3D) -> void:
+	var original_size := root.size
+	var original_touch: bool = world.ui.touch.active
+	var original_mode := root.content_scale_mode
+	var original_aspect := root.content_scale_aspect
+	var original_design := root.content_scale_size
+	var scaler = preload("res://scripts/ui/display_scale.gd")
+	world.ui.touch.active = true
+	for css_size: Vector2i in [Vector2i(390, 844), Vector2i(844, 390)]:
+		for density in [1, 2, 3]:
+			root.size = css_size * density
+			scaler.apply_css_size(root, css_size)
+			world.ui.show_play()
+			for frame in 10:
+				await process_frame
+			var description := "%s DPR %d" % [css_size, density]
+			check(root.get_visible_rect().size.is_equal_approx(Vector2(css_size)), "HUD usa dimensões CSS em " + description)
+			var screen_transform := root.get_final_transform()
+			var jump_button: Button = world.ui.touch.action_buttons[0]
+			var drawn_width := screen_transform.basis_xform(Vector2(jump_button.size.x, 0)).length()
+			check(drawn_width / density >= 64, "Botão mantém tamanho confortável em CSS em " + description)
+			var bounds := Rect2(Vector2.ZERO, Vector2(css_size))
+			check(bounds.encloses(world.ui.quest_panel.get_global_rect()) and bounds.encloses(jump_button.get_global_rect()), "Missão e botões cabem após escala Retina em " + description)
+			# Send physical pixel events, as DisplayServer does, not pre-scaled UI events.
+			var press := InputEventScreenTouch.new()
+			press.index = 0
+			press.pressed = true
+			press.position = screen_transform * jump_button.get_global_rect().get_center()
+			world.player.touch_jump = false
+			root.push_input(press, false)
+			check(world.player.touch_jump, "Toque físico aciona Pular na posição desenhada em " + description)
+			press.pressed = false
+			root.push_input(press, false)
+			world.player.touch_jump = false
+			var center := Vector2(85 if css_size.x < 600 else 135, css_size.y - 120)
+			press.index = 1
+			press.pressed = true
+			press.position = screen_transform * center
+			root.push_input(press, false)
+			var drag := InputEventScreenDrag.new()
+			drag.index = 1
+			drag.position = screen_transform * (center + Vector2(0, -40))
+			drag.relative = screen_transform.basis_xform(Vector2(0, -40))
+			root.push_input(drag, false)
+			check(world.player.touch_axis.y < -0.5, "Joystick transforma arrasto de pixels físicos em " + description)
+			press.pressed = false
+			root.push_input(press, false)
+			check(world.player.touch_axis == Vector2.ZERO, "Soltar joystick libera movimento em " + description)
+	# A transient hidden canvas must not collapse a valid layout.
+	var valid_design := root.content_scale_size
+	scaler.apply_css_size(root, Vector2i.ZERO)
+	check(root.content_scale_size == valid_design, "Rotação não aplica canvas temporariamente vazio")
+	root.content_scale_mode = original_mode
+	root.content_scale_aspect = original_aspect
+	root.content_scale_size = original_design
 	root.size = original_size
 	world.ui.touch.active = original_touch
 	world.ui.show_play()

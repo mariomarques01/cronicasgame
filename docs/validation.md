@@ -1,5 +1,9 @@
 # Validação executada nesta entrega
 
+## Escala do HUD no navegador mobile / Retina
+
+Corrigida a escala baseada em pixels físicos: o navegador agora informa o tamanho CSS do canvas e o Godot aplica a mesma transformação ao desenho e à entrada. **217 verificações aprovadas, zero falhas**, incluindo DPR 1/2/3 em retrato e paisagem, tamanho mínimo dos botões e eventos reais em coordenadas físicas para Pular/joystick. A resolução 3D não foi reduzida. O tamanho CSS é reconsultado para orientação, tela cheia e barras do navegador. Sem validação em iPhone físico neste ambiente.
+
 ## Acabamento visual e HUD ornamental
 
 180 verificações aprovadas, zero falhas. Incluem a vegetação fora de caminhos e cultivos, missão/save/animações, minimapa compartilhando o mundo, indicadores reais e interface/pausa em 1280×720, 390×844 e 844×390. Exportações Web e Windows release concluídas e pacote Web validado de fora do projeto até a abertura do portão. O teste do pacote confirmou também os novos shaders, ícones e retrato. Capturas reais e limitações em `docs/visual-polish.md`. Windows não foi executado neste Linux; desempenho em celular físico ainda não foi medido.
