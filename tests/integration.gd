@@ -357,6 +357,7 @@ func run() -> void:
 	await check_third_person_controls(world)
 	await check_runtime_budget(world)
 	check_geometry_budget(world)
+	await check_forest_exploration(world)
 	if not previous.is_empty():
 		file = FileAccess.open(game.SAVE_PATH, FileAccess.WRITE)
 		file.store_string(previous)
@@ -933,3 +934,120 @@ func check_geometry_budget(world: Node3D) -> void:
 	for crop: String in ["Cabbages", "Carrots"]:
 		var batch: MultiMeshInstance3D = world.get_node("GoldenAcres/CultivatedPlants/" + crop)
 		check(batch.cast_shadow == GeometryInstance3D.SHADOW_CASTING_SETTING_OFF and batch.multimesh.mesh.get_faces().size() / 3 <= 1400, "Plantação mantém orçamento leve de geometria e sombras: " + crop)
+
+func check_forest_exploration(world: Node3D) -> void:
+	var platform := StaticBody3D.new()
+	platform.position.y = 59.5
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(80, 1, 80)
+	shape.shape = box
+	platform.add_child(shape)
+	world.add_child(platform)
+	var player: CharacterBody3D = world.player
+	var touch: Control = world.ui.touch
+	await settle_control_player(world, platform)
+	var short_height := player.position.y
+	Input.action_press("jump")
+	await physics_frame
+	await physics_frame
+	Input.action_release("jump")
+	for frame in 60:
+		await physics_frame
+		short_height = maxf(short_height, player.position.y)
+	await settle_control_player(world, platform)
+	var full_height := player.position.y
+	Input.action_press("jump")
+	for frame in 70:
+		await physics_frame
+		full_height = maxf(full_height, player.position.y)
+	Input.action_release("jump")
+	check(full_height - short_height > 0.4 and full_height < 61.5, "Segurar salto sobe mais que toque curto sem aumentar o arco máximo antigo")
+	await settle_control_player(world, platform)
+	var old_touch: bool = touch.active
+	touch.active = true
+	for frame in 8: await process_frame
+	var jump_point: Vector2 = touch.action_buttons[0].get_global_rect().get_center()
+	control_touch(world, 4, jump_point, true)
+	check(touch.jump_id == 4 and player.touch_jump_held, "Botão de pulo mantém o dedo proprietário para controlar altura")
+	control_touch(world, 5, jump_point, true)
+	check(touch.jump_id == 4, "Segundo dedo no botão não rouba o salto em andamento")
+	control_touch(world, 4, jump_point, true, true)
+	check(touch.jump_id == -1 and not player.touch_jump_held, "Cancelar o toque encerra a sustentação do salto")
+	touch.reset()
+	touch.active = old_touch
+	player.avatar.animate_motion(0.2, 12, 36, true)
+	check(absf(player.avatar.model.rotation.z) <= 0.071 and absf(player.avatar.model.rotation.x) <= 0.046, "Inclinação visual de curvas e aceleração respeita limites pequenos")
+	var physics_heading: float = player.avatar.rotation.y
+	player.avatar.start_magic_twirl()
+	player.avatar.animate_motion(0.2, 0, 0, false)
+	check(player.avatar.model.rotation.y > PI + 0.1 and is_equal_approx(player.avatar.rotation.y, physics_heading), "Impulso mágico gira a malha sem girar a orientação física")
+	player.avatar.animate_motion(1.0, 0, 0, false)
+	check(is_equal_approx(player.avatar.model.rotation.y, PI), "Pirueta termina na orientação original sem acumular rotação")
+	check(absf(player.avatar.model.rotation.z) < 0.001 and absf(player.avatar.model.rotation.x) < 0.001, "Corpo retorna à orientação neutra sem alterar a cápsula")
+	platform.queue_free()
+	var trail: Node3D = world.forest_trail
+	game.stage = 3
+	trail.reset()
+	check(not trail.activate_checkpoint(), "Marco não ativa antes do desbloqueio da floresta")
+	game.stage = 4
+	world.sync_state()
+	world.ui.show_play()
+	player.position = trail.checkpoint_position + Vector3.UP * 0.1
+	player.velocity = Vector3.ZERO
+	for frame in 8: await physics_frame
+	check(trail.checkpoint_active and player.respawn_position.distance_to(trail.checkpoint_position) < 0.3, "Marco é ativado pela proximidade e escolhe piso seguro")
+	var return_point: Vector3 = player.respawn_position
+	player.position += Vector3(8, 3, 0)
+	player.velocity = Vector3(3, -10, 0)
+	world.ui.settings_menu()
+	var return_button: Button
+	for child in world.ui.content.get_children():
+		if child is Button and child.text == "Voltar ao marco": return_button = child
+	check(return_button != null, "Configurações oferecem retorno sem novo botão no HUD")
+	return_button.pressed.emit()
+	check(player.position.is_equal_approx(return_point) and player.velocity.is_zero_approx() and player.enabled, "Retorno ao marco limpa impulso e retoma a partida")
+	player.position.y = -30
+	await physics_frame
+	await physics_frame
+	check(player.position.distance_to(return_point) < 0.2 and player.velocity.y >= -1, "Queda fora do mundo retorna ao marco sem manter velocidade de queda")
+	player.position = trail.pad_position + Vector3.UP * 0.15
+	player.velocity = Vector3.ZERO
+	player.touch_axis = Vector2(0, -1)
+	var bounces: int = trail.bounce_count
+	var first_top: float = trail.platforms[0].position.y + trail.platforms[0].get_child(1).shape.height * 0.5
+	var reached_first := false
+	for frame in 95:
+		await physics_frame
+		if player.is_on_floor() and absf(player.position.y - first_top) < 0.12 and player.position.z < -70.0:
+			reached_first = true
+			break
+	player.touch_axis = Vector2.ZERO
+	check(trail.bounce_count == bounces + 1, "Pedra de impulso lança uma vez, sem repetir impulso no ar")
+	check(reached_first, "Impulso e controle aéreo permitem alcançar a primeira plataforma com física real")
+	for index in [1, 2]:
+		for frame in 10: await physics_frame
+		player.touch_axis = Vector2(0, -1)
+		player.touch_jump = true
+		var top: float = trail.platforms[index].position.y + trail.platforms[index].get_child(1).shape.height * 0.5
+		var arrived := false
+		for frame in 65:
+			await physics_frame
+			if player.is_on_floor() and absf(player.position.y - top) < 0.12 and player.position.z < -72 - index * 5 + 1.9:
+				arrived = true
+				break
+		player.touch_axis = Vector2.ZERO
+		check(arrived, "Salto normal alcança etapa seguinte da trilha: " + str(index))
+	for frame in 10: await physics_frame
+	check(trail.completed and game.stage == 4, "Chegar ao mirante conclui trilha opcional sem mudar a missão existente")
+	var completions: int = world.get_node("LandingFeedback").collection_count
+	for frame in 10: await physics_frame
+	check(world.get_node("LandingFeedback").collection_count == completions, "Conclusão do mirante não repete brilho a cada quadro")
+	var effect_nodes: int = trail.get_child_count()
+	for i in 40: trail.energy_burst(trail.overlook_position)
+	check(trail.energy_bursts.size() == 2 and trail.get_child_count() == effect_nodes, "Explosões de fogo e jade reutilizam dois anéis sem criar nós")
+	trail._physics_process(1.0)
+	check(not trail.energy_bursts[0].visible and not trail.energy_bursts[1].visible, "Anéis de energia encerram a emissão após o impulso")
+	check(trail.find_children("*", "OmniLight3D", true, false).is_empty(), "Ambientação mágica não adiciona luzes dinâmicas")
+	world.start_game(false)
+	check(not trail.checkpoint_active and not trail.completed and player.respawn_position.z > 0, "Nova jornada limpa marco e progresso temporário da trilha")

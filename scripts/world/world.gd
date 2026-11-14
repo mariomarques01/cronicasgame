@@ -19,6 +19,7 @@ var nearest: String = ""
 var map_camera: Camera3D
 var windmill: Node3D
 var crop_positions: Array[Dictionary] = []
+var forest_trail: Node3D
 
 func material(color: Color, glow: bool = false) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
@@ -88,6 +89,10 @@ func _ready() -> void:
 	landing_feedback.set_script(preload("res://scripts/player/landing_feedback.gd"))
 	landing_feedback.player = player
 	add_child(landing_feedback)
+	forest_trail = Node3D.new()
+	forest_trail.set_script(preload("res://scripts/world/forest_trail.gd"))
+	forest_trail.world = self
+	add_child(forest_trail)
 	map_camera = Camera3D.new()
 	map_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	map_camera.size = 112
@@ -157,6 +162,8 @@ func add_target(id: String, hint: String, pos: Vector3, title: String) -> void:
 		label.reparent(stones[id], true)
 
 func sync_state() -> void:
+	if is_instance_valid(forest_trail):
+		forest_trail.visible = Game.stage == 4
 	for id: String in stones:
 		stones[id].visible = not id in Game.collected
 	var opened: bool = Game.stage == 4
@@ -180,6 +187,8 @@ func start_game(load_existing: bool) -> void:
 	player.position = Game.player_position if load_existing else ground(-29, 33, 2)
 	# Older saves may put the player below the imported landscape.
 	player.position.y = maxf(player.position.y, terrain.height_at(player.position.x, player.position.z) + 1.0)
+	player.respawn_position = ground(-29, 33, 2)
+	forest_trail.reset()
 	playing = true
 	ui.show_play()
 	sync_state()

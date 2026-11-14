@@ -22,7 +22,7 @@ func run() -> void:
 	var world: Node3D = scene.instantiate()
 	root.add_child(world)
 	await physics_frame
-	for path in ["GoldenAcres/CozyTimberHouse", "GoldenAcres/FarmBuildings/Workshop", "GoldenAcres/FarmBuildings/Barn", "GoldenAcres/FarmBuildings/Windmill/SlowRotor", "Trees", "Lia/WolfCharacter", "LandingFeedback", "MeadowDetails", "ValleyAtmosphere/ValleyEnvironment"]:
+	for path in ["GoldenAcres/CozyTimberHouse", "GoldenAcres/FarmBuildings/Workshop", "GoldenAcres/FarmBuildings/Barn", "GoldenAcres/FarmBuildings/Windmill/SlowRotor", "Trees", "Lia/WolfCharacter", "LandingFeedback", "ForestTrail", "MeadowDetails", "ValleyAtmosphere/ValleyEnvironment"]:
 		check(world.get_node_or_null(path) != null, "Recurso exportado: " + path)
 	if failures > 0:
 		quit(1)
@@ -34,6 +34,7 @@ func run() -> void:
 	check(world.ui.ornament.minimap.viewport.world_3d == world.get_world_3d(), "Minimapa funcional incluído no pacote")
 	check(not ResourceLoader.exists("res://assets/models/bunny_animated.glb") and not ResourceLoader.exists("res://assets/models/Jumping.fbx"), "Personagens de alta densidade fora do pacote")
 	check(world.player.avatar.animation_player.has_animation("Jumping") and world.player.avatar.animation_player.has_animation("JumpLanding"), "Pulo e contato pré-processados presentes no pacote")
+	check(ResourceLoader.exists("res://assets/shaders/trail_energy.gdshader"), "Material de fogo e jade incluído no pacote")
 	check_texture_budget(world)
 	check(not ResourceLoader.exists("res://assets/models/golden_acres.glb"), "Pacote não inclui a fazenda original substituída")
 	check(not ResourceLoader.exists("res://assets/models/farm_without_fences.res"), "Malha antiga com pedras/flores fora do pacote")

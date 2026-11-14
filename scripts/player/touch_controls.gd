@@ -2,6 +2,7 @@ extends Control
 var player: CharacterBody3D
 var stick_id: int = -1
 var look_id: int = -1
+var jump_id: int = -1
 var stick_center := Vector2.ZERO
 var stick_offset := Vector2.ZERO
 var radius: float = 60
@@ -25,6 +26,9 @@ func _ready() -> void:
 func reset() -> void:
 	stick_id = -1
 	look_id = -1
+	jump_id = -1
+	player.touch_jump_held = false
+	player.touch_jump_variable = false
 	stick_offset = Vector2.ZERO
 	player.touch_axis = Vector2.ZERO
 	player.touch_jump = false
@@ -39,9 +43,19 @@ func _input(event: InputEvent) -> void:
 	if stick_id == -1:
 		stick_center = home_center()
 	if event is InputEventScreenTouch:
+		if (not event.pressed or event.canceled) and event.index == jump_id:
+			jump_id = -1
+			player.touch_jump_held = false
 		if event.pressed and not event.canceled:
 			for button: Button in action_buttons:
 				if button.is_visible_in_tree() and button.get_global_rect().has_point(event.position):
+					if button == action_buttons[0]:
+						if jump_id != -1:
+							get_viewport().set_input_as_handled()
+							return
+						jump_id = event.index
+						player.touch_jump_held = true
+						player.touch_jump_variable = true
 					button.pressed.emit()
 					get_viewport().set_input_as_handled()
 					return
