@@ -1,5 +1,9 @@
 # Validação executada nesta entrega
 
+## Acabamento visual e HUD ornamental
+
+180 verificações aprovadas, zero falhas. Incluem a vegetação fora de caminhos e cultivos, missão/save/animações, minimapa compartilhando o mundo, indicadores reais e interface/pausa em 1280×720, 390×844 e 844×390. Exportações Web e Windows release concluídas e pacote Web validado de fora do projeto até a abertura do portão. O teste do pacote confirmou também os novos shaders, ícones e retrato. Capturas reais e limitações em `docs/visual-polish.md`. Windows não foi executado neste Linux; desempenho em celular físico ainda não foi medido.
+
 ## Lia com personagem lobo fornecido
 
 Substituída a cápsula visual da Lia pelo arquivo original preservado em `assets/models/lia_wolf.glb`. A malha otimizada mantém materiais e UVs, com 31.328 triângulos e altura de 2,5 unidades. O corpo de colisão, posição (-30, 9 no plano X/Z), identificação e diálogos da missão foram preservados. Modelo renderizado e inspecionado no Godot Compatibility.
