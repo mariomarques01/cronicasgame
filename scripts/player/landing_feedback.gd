@@ -4,6 +4,8 @@ var player: CharacterBody3D
 var bursts: Array[CPUParticles3D] = []
 var trigger_count := 0
 var cursor := 0
+var sparkle_cursor := 6
+var was_enabled := true
 const MIN_IMPACT := 3.5
 var step_distance := 0.0
 var skid_cooldown := 0.0
@@ -50,8 +52,8 @@ func _ready() -> void:
 		burst.name = "Dust%d" % i
 		burst.emitting = false
 		burst.one_shot = true
-		burst.amount = 8
-		burst.lifetime = 0.35
+		burst.amount = 12 if i >= 6 else 8
+		burst.lifetime = 0.65 if i >= 6 else 0.35
 		burst.explosiveness = 1.0
 		burst.local_coords = false
 		burst.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
@@ -64,7 +66,7 @@ func _ready() -> void:
 		burst.scale_amount_min = 0.3
 		burst.scale_amount_max = 0.6
 		burst.color_ramp = fade
-		burst.mesh = mesh
+		burst.mesh = sparkle_mesh if i >= 6 else dust_mesh
 		burst.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(burst)
 		bursts.append(burst)
@@ -80,13 +82,13 @@ func on_landed(impact_speed: float) -> void:
 	trigger_count += 1
 
 func emit_burst(at: Vector3, strength: float, tint: Color, sparkling: bool = false) -> void:
-	var burst := bursts[cursor]
-	cursor = (cursor + 1) % bursts.size()
+	var burst := bursts[sparkle_cursor if sparkling else cursor]
+	if sparkling:
+		sparkle_cursor = 6 + (sparkle_cursor - 6 + 1) % 2
+	else:
+		cursor = (cursor + 1) % 6
 	burst.global_position = at + Vector3.UP * 0.08
 	burst.color = tint
-	burst.amount = 12 if sparkling else 8
-	burst.lifetime = 0.65 if sparkling else 0.35
-	burst.mesh = sparkle_mesh if sparkling else dust_mesh
 	burst.initial_velocity_min = 0.6 * strength
 	burst.initial_velocity_max = 1.3 * strength
 	burst.scale_amount_min = (0.28 if sparkling else 0.3) * strength
@@ -131,5 +133,8 @@ func _physics_process(delta: float) -> void:
 		step_distance = 0.0
 
 func _process(_delta: float) -> void:
+	if was_enabled == player.enabled:
+		return
+	was_enabled = player.enabled
 	for burst: CPUParticles3D in bursts:
 		burst.speed_scale = 1.0 if player.enabled else 0.0

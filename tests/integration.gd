@@ -350,6 +350,7 @@ func run() -> void:
 	await check_retina_hud(world)
 	await check_compact_hud(world)
 	await check_third_person_controls(world)
+	await check_runtime_budget(world)
 	if not previous.is_empty():
 		file = FileAccess.open(game.SAVE_PATH, FileAccess.WRITE)
 		file.store_string(previous)
@@ -482,6 +483,8 @@ func check_retina_hud(world: Node3D) -> void:
 				await process_frame
 			var description := "%s DPR %d" % [css_size, density]
 			check(root.get_visible_rect().size.is_equal_approx(Vector2(css_size)), "HUD usa dimensões CSS em " + description)
+			var rendered_pixels: float = root.size.x * root.size.y * pow(root.scaling_3d_scale, 2)
+			check(rendered_pixels <= minf(css_size.x * css_size.y * 1.5625, 1280 * 720) + 2, "Cena 3D respeita orçamento de pixels em " + description)
 			var screen_transform := root.get_final_transform()
 			var jump_button: Button = world.ui.touch.action_buttons[0]
 			var drawn_width := screen_transform.basis_xform(Vector2(jump_button.size.x, 0)).length()
@@ -854,3 +857,40 @@ func check_third_person_controls(world: Node3D) -> void:
 	check(fx.collection_count == before_collection + 1 and "stone_0" in game.collected, "Interação aceita aciona brilho e registra a pedra")
 	world.interact("stone_0")
 	check(fx.collection_count == before_collection + 1, "Tentativa duplicada não repete brilho de coleta")
+
+func check_runtime_budget(world: Node3D) -> void:
+	world.ui.show_play()
+	world.player.touch_axis = Vector2.ZERO
+	for frame in 12:
+		await process_frame
+	var map: Control = world.ui.ornament.minimap
+	var captures: int = map.capture_count
+	var layouts: int = world.ui.layout_count
+	for frame in 30:
+		await process_frame
+	check(captures == 1 and map.capture_count == captures, "Minimapa captura o cenário uma vez sem renderização 3D periódica")
+	check(world.ui.layout_count == layouts, "HUD estável não refaz layout nem estilos a cada quadro")
+	var start: Vector3 = world.player.position
+	world.player.position += Vector3(5, 0, -3)
+	map._process(0.6)
+	var center: Vector2 = map.map_material.get_shader_parameter("sample_center")
+	check(center.is_equal_approx(Vector2.ONE * 0.5 + Vector2(world.player.position.x, world.player.position.z) / map.MAP_EXTENT), "Minimapa acompanha deslocamento por UV sem redesenhar o mundo")
+	check(map.capture_count == captures, "Movimentar jogador não dispara nova captura do minimapa")
+	world.player.position = start
+	var fx := world.get_node("LandingFeedback")
+	var configuration: Array = []
+	for burst: CPUParticles3D in fx.bursts:
+		configuration.append([burst.amount, burst.lifetime, burst.mesh])
+	for i in 20:
+		fx.on_landed(8)
+		fx.on_collection(world.player.position)
+	var unchanged := true
+	for i in fx.bursts.size():
+		var burst: CPUParticles3D = fx.bursts[i]
+		unchanged = unchanged and configuration[i] == [burst.amount, burst.lifetime, burst.mesh]
+	check(unchanged, "Impactos e coletas não redimensionam buffers nem trocam malhas dos emissores")
+	world.ui.settings_menu()
+	for frame in 6:
+		await process_frame
+	check(world.ui.menu.visible and not world.player.enabled, "Layout sob demanda preserva abertura de configurações")
+	world.ui.show_play()

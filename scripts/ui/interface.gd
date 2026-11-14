@@ -21,6 +21,8 @@ var desktop_actions: HBoxContainer
 var map_button: Button
 var body_font := FontVariation.new()
 var ornament: RefCounted
+var layout_count := 0
+var last_layout_key: Array = []
 var display_scale := preload("res://scripts/ui/display_scale.gd").new()
 const BODY_FONT = preload("res://assets/fonts/nunito.ttf")
 const DISPLAY_FONT = preload("res://assets/fonts/cinzel.ttf")
@@ -294,7 +296,20 @@ func frame_style(background: Color, border: Color, radius_value: int) -> StyleBo
 
 func _process(delta: float) -> void:
 	display_scale.refresh(get_window(), delta)
+	if notice_time > 0:
+		notice_time = maxf(0.0, notice_time - delta)
+		if notice_time <= 0:
+			message.text = ""
 	var viewport_size := get_viewport().get_visible_rect().size
+	var layout_key := [viewport_size, touch.active, world.player.enabled, world.map_camera.current,
+		menu.visible, content.get_child_count(), content.get_combined_minimum_size(), hint.text, message.text, notice_time > 0]
+	if layout_key == last_layout_key:
+		return
+	last_layout_key = layout_key
+	layout_count += 1
+	layout_controls(viewport_size)
+
+func layout_controls(viewport_size: Vector2) -> void:
 	menu.custom_minimum_size.x = minf(520, viewport_size.x - 24)
 	menu.size = Vector2(menu.custom_minimum_size.x, minf(content.get_combined_minimum_size().y + 40, viewport_size.y - 24))
 	menu.position = (viewport_size - menu.size) * 0.5
@@ -332,7 +347,3 @@ func _process(delta: float) -> void:
 		touch.visible = world.player.enabled
 	if ornament != null:
 		ornament.layout(self, viewport_size)
-	if notice_time > 0:
-		notice_time -= delta
-		if notice_time <= 0:
-			message.text = ""
