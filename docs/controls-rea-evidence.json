@@ -1,0 +1,80 @@
+{
+  "tool": {
+    "name": "rea-agents",
+    "version": "6.9.0",
+    "repository": "https://github.com/morluto/rea"
+  },
+  "source": {
+    "name": "SuperMak64-Godot-source.zip",
+    "url": "https://drive.google.com/drive/folders/1ReiMSBnme4C1vDlLTTc0EtW9dGBKFYha",
+    "sha256": "78e0ad9c74b868da293e5ee54471a3a13cb0790be3c5fe4ac2e121c9022e0243",
+    "engine_from_readme": "Godot 4.7",
+    "source_commit_from_readme": "f73ccfb8e"
+  },
+  "inspection": {
+    "operation": "inspect-artifact",
+    "evidence_id": "ev_15a9a729dfd94f9b1b7283abf443ecc41866a7771552e88bff8e5c364f2626da",
+    "zip_directory_entries": 5296,
+    "integrity_contradictions": 0
+  },
+  "extraction": {
+    "operation": "extract-artifact",
+    "evidence_id": "ev_d2ca7c375eaf559ed237e2cb8d0b42d2661e93951144658bb72447fa8ed42acc",
+    "integrity_policy": "fail",
+    "selected_files": 5
+  },
+  "files": [
+    {
+      "path": "SuperMak64-Godot/README.txt",
+      "sha256": "72d9c5fa6ad24c5f571c39205e7b2e3572c2c65d5b2eefc9bd2a474893c3c94d",
+      "inventory_hash_status": "verified"
+    },
+    {
+      "path": "SuperMak64-Godot/scripts/camera/mak_camera.gd",
+      "sha256": "7415e0191288998fa2e7898f24ea5cdf3b7ff8fb6fd10e5c2f31256142bb0ff9",
+      "inventory_hash_status": "verified"
+    },
+    {
+      "path": "SuperMak64-Godot/scripts/player/mak_input.gd",
+      "sha256": "75c15cb98baaf62378168b8e233c9b8033aafbfa3faea53d71457b34e1de6620",
+      "inventory_hash_status": "verified"
+    },
+    {
+      "path": "SuperMak64-Godot/scripts/player/mak_player.gd",
+      "sha256": "8584faf7294681f536fc04d4b79c6f21200c0ac6cbe3df64dbfb3c81a9084314",
+      "inventory_hash_status": "verified"
+    },
+    {
+      "path": "SuperMak64-Godot/scripts/player/movement_profile.gd",
+      "sha256": "99a3ff9a814e714a2955fbd81e2d7d8f1bd43ca8797b4a2e63da11e53b83d792",
+      "inventory_hash_status": "verified"
+    },
+    {
+      "path": "SuperMak64-Godot/scripts/fx/juice.gd",
+      "sha256": "f034bb290dcb652164f61216918eb6cab84939dbbd6dde5b250a57de63f0022a",
+      "inventory_hash_status": "verified"
+    },
+    {
+      "path": "SuperMak64-Godot/scripts/objects/breakable_crate.gd",
+      "sha256": "d75080192572c72a441fc2bb295ca78677bdd6ef02f3cff7b1627fac037b9315",
+      "inventory_hash_status": "verified"
+    },
+    {
+      "path": "SuperMak64-Godot/scripts/objects/hazard_volume.gd",
+      "sha256": "af67e20131f19161154bddefad5c20cd2631a5e89478a87b24ccb3adf5fe7225",
+      "inventory_hash_status": "verified"
+    },
+    {
+      "path": "SuperMak64-Godot/scripts/objects/npc_talker.gd",
+      "sha256": "b326a48519639db072c6a4473058ca801a903072f7f3064e7bcc37428fbf3405",
+      "inventory_hash_status": "verified"
+    }
+  ],
+  "coverage_note": "Inspeção e extração estáticas. A interpretação das mecânicas veio da leitura dos scripts; os testes de execução foram feitos no Eldervale, não no SuperMak64.",
+  "gameplay_extraction": {
+    "operation": "extract-artifact",
+    "evidence_id": "ev_31c5cd186ece27a58b6323c9c4ab4110bce225a51adbe331efaff9b8ad80313f",
+    "integrity_policy": "fail",
+    "selected_files": 4
+  }
+}

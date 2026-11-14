@@ -1,5 +1,9 @@
 # Validação executada nesta entrega
 
+## Controles de terceira pessoa e referência SuperMak64/REA
+
+**270 verificações aprovadas, zero falhas.** Analógico gradual, aceleração/frenagem, movimento relativo à câmera, passos de animação proporcionais à velocidade, tolerância e buffer de salto, joystick flutuante, câmera por segundo dedo e pulo por terceiro. Degraus baixos são transpostos sem salto e obstáculos altos permanecem bloqueados. Poeira de aterrissagem responde ao contato real e respeita a pausa; Lia e o jogador se orientam na conversa sem deslocar suas colisões. Os testes físicos em DPR 1/2/3 conferem também a sensibilidade da câmera. Estudo do SuperMak64 com REA 6.9.0, inventário do ZIP e extração seletiva com integridade verificada documentados em `docs/third-person-controls.md`. Sem execução do SuperMak64 original ou teste em celular físico neste ambiente.
+
 ## HUD compacto e pausa em Configurações
 
 Faixa de missão reduzida de 132 para 58 pixels CSS no celular; detalhes completos disponíveis por toque. Minimap móvel reduzido de 90 para 72 pixels CSS. Botão permanente de pausa removido; engrenagem circular de oito dentes abre Configurações, com opção Pausar jogo. **228 verificações aprovadas, zero falhas**, incluindo toque em DPR 3 na faixa e engrenagem, conteúdo completo da missão, pausa/retorno e preservação dos testes de densidade e multitoque. Captura real do novo HUD em 1170×2532 / 390×844 CSS conferida.

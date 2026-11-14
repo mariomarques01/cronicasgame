@@ -83,6 +83,10 @@ func _ready() -> void:
 	player.position = ground(-29, 33, 2)
 	add_child(player)
 	player.respawn_position = ground(-29, 33, 2)
+	var landing_feedback := Node3D.new()
+	landing_feedback.set_script(preload("res://scripts/player/landing_feedback.gd"))
+	landing_feedback.player = player
+	add_child(landing_feedback)
 	map_camera = Camera3D.new()
 	map_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	map_camera.size = 112
@@ -181,6 +185,13 @@ func start_game(load_existing: bool) -> void:
 
 func interact(id: String) -> void:
 	if id == "lia":
+		var lia: StaticBody3D = get_node("Lia")
+		var direction := lia.global_position - player.global_position
+		player.velocity.x = 0
+		player.velocity.z = 0
+		if Vector2(direction.x, direction.z).length_squared() > 0.0025:
+			player.avatar.rotation.y = atan2(-direction.x, -direction.z)
+		lia.face_toward(player.global_position)
 		ui.dialogue(Game.talk())
 	elif id.begins_with("stone_"):
 		if not Game.collect(id):
