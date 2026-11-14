@@ -8,6 +8,7 @@ var airborne := false
 var air_time := 0.0
 var landing_time := 0.0
 var fall_delay := 0.0
+var locomotion_rate := 1.0
 const TAKEOFF_TIME := 0.50
 const APEX_TIME := 0.78
 const CONTACT_TIME := 1.10
@@ -26,6 +27,15 @@ func _ready() -> void:
 	for clip: String in ["Walking", "Running"]:
 		if animation_player.has_animation(clip):
 			animation_player.get_animation(clip).loop_mode = Animation.LOOP_LINEAR
+	var idle := animation_player.get_animation("Walking").duplicate() as Animation
+	idle.length = 0.5
+	idle.loop_mode = Animation.LOOP_LINEAR
+	for track in idle.get_track_count():
+		var pose: Variant = idle.track_get_key_value(track, 0)
+		while idle.track_get_key_count(track) > 0:
+			idle.track_remove_key(track, 0)
+		idle.track_insert_key(track, 0.0, pose)
+	animation_player.get_animation_library("").add_animation("Rest", idle)
 	_import_jump()
 	_set_idle_pose()
 
@@ -86,9 +96,7 @@ func _import_jump() -> void:
 	source.free()
 
 func _set_idle_pose() -> void:
-	animation_player.play("Walking")
-	animation_player.seek(0.0, true)
-	animation_player.pause()
+	animation_player.play("Rest", 0.18)
 
 func animate(delta: float, moving: bool, running: bool, grounded: bool = true, vertical_velocity: float = NAN, locomotion_speed: float = NAN) -> void:
 	if animation_player == null:
@@ -127,11 +135,13 @@ func animate(delta: float, moving: bool, running: bool, grounded: bool = true, v
 		if landing_time > 0.0:
 			return
 	if not moving:
-		if animation_player.assigned_animation != "Walking" or animation_player.is_playing() or animation_player.current_animation_position != 0.0:
+		if animation_player.assigned_animation != "Rest":
 			_set_idle_pose()
 		return
 	var clip := "Running" if running else "Walking"
 	if is_finite(locomotion_speed):
-		animation_player.speed_scale = clampf(locomotion_speed / (8.0 if running else 4.5), 0.25, 1.3)
+		var target_rate := clampf(locomotion_speed / (8.0 if running else 4.5), 0.25, 1.3)
+		locomotion_rate = lerpf(locomotion_rate, target_rate, 1.0 - exp(-14.0 * delta))
+		animation_player.speed_scale = locomotion_rate
 	if animation_player.current_animation != clip or not animation_player.is_playing():
 		animation_player.play(clip, 0.12)
