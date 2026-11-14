@@ -34,8 +34,12 @@ A barra do retrato mostra **etapas reais da missão (0–4)**. Os indicadores mo
 “Explorador”: Lia continua sendo a guardiã/NPC. Não foram inventados níveis, XP,
 vida ou saldos de moedas/gemas. O aviso na mochila aparece quando há itens reais.
 
-A interface usa coordenadas da janela, com layout adaptável, em vez de ampliar
-uma referência de 720×480. Menu de pausa com rolagem para janelas baixas.
+No navegador, a interface usa o tamanho CSS visível do canvas. A escala de
+canvas do Godot mantém textos, ícones e áreas de toque com o mesmo tamanho em
+DPR 1, 2 e 3, mesmo quando a resolução interna é 1170×2532 para uma janela CSS
+de 390×844. A resolução do cenário 3D continua independente. O tamanho é
+reconsultado após mudanças de orientação, tela cheia e barras do navegador.
+Menu de pausa com rolagem para janelas baixas.
 
 ## Capturas reais
 
@@ -56,10 +60,13 @@ geradas por IA nem promessa de paridade com o conceito cinematográfico.
 
 ## Validação
 
-180 verificações de integração aprovadas, zero falhas. Incluem a missão até
+217 verificações de integração aprovadas, zero falhas. Incluem a missão até
 abrir o portão, save/load, animações, acessos e colisões, joystick e segundo dedo,
 vegetação fora dos acessos/cultivos e HUD/pausa em 1280×720, 390×844 e 844×390.
 O minimapa compartilha o mundo real e os indicadores acompanham o estado real.
+As verificações Retina cobrem retrato e paisagem em DPR 1, 2 e 3, incluindo
+botões com pelo menos 64 pixels CSS de largura, toque em coordenadas físicas,
+arrasto e liberação do joystick, e canvas temporariamente vazio na rotação.
 
 Exportações release Web e Windows geradas. O pacote Web é iniciado de fora do
 projeto por `tests/export_smoke.gd`, verificando recursos, texturas e a missão.
@@ -73,7 +80,8 @@ DISPLAY=:99 godot --audio-driver Dummy --path . --script tools/capture_visuals.g
 ```
 
 Use `--hud-only --quick` após a pasta de saída para capturar só os três formatos
-do HUD. A captura mantém o HUD funcional e mostra o mesmo cenário da jornada.
+do HUD. Acrescente `--retina` para a captura em 390×844 CSS / DPR 3.
+A captura mantém o HUD funcional e mostra o mesmo cenário da jornada.
 
 Modelos de maior qualidade, vegetação mais elaborada, novas animações e os três
 poderes continuam sendo trabalho futuro. Nenhum desses elementos é apresentado

@@ -53,7 +53,12 @@ func capture() -> void:
 		{"id": "hud-portrait", "size": Vector2i(390, 844), "touch": true},
 		{"id": "hud-landscape", "size": Vector2i(844, 390), "touch": true}
 	]:
-		root.size = spec.size
+		if "--retina" in args and spec.id != "hud-portrait":
+			continue
+		var density := 3 if "--retina" in args else 1
+		root.size = spec.size * density
+		if density > 1:
+			preload("res://scripts/ui/display_scale.gd").apply_css_size(root, spec.size)
 		world.ui.touch.active = spec.touch
 		for frame in (4 if "--quick" in args else 12):
 			await process_frame

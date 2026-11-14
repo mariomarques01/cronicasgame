@@ -21,6 +21,7 @@ var desktop_actions: HBoxContainer
 var map_button: Button
 var body_font := FontVariation.new()
 var ornament: RefCounted
+var display_scale := preload("res://scripts/ui/display_scale.gd").new()
 const BODY_FONT = preload("res://assets/fonts/nunito.ttf")
 const DISPLAY_FONT = preload("res://assets/fonts/cinzel.ttf")
 
@@ -35,6 +36,7 @@ func label(text: String, size: int = 20) -> Label:
 	return node
 
 func _ready() -> void:
+	display_scale.refresh(get_window(), 0.0)
 	body_font.base_font = BODY_FONT
 	body_font.variation_opentype = {"wght": 600}
 	body_font.variation_embolden = 0.3
@@ -274,6 +276,7 @@ func frame_style(background: Color, border: Color, radius_value: int) -> StyleBo
 	return style
 
 func _process(delta: float) -> void:
+	display_scale.refresh(get_window(), delta)
 	var viewport_size := get_viewport().get_visible_rect().size
 	menu.custom_minimum_size.x = minf(520, viewport_size.x - 24)
 	menu.size = Vector2(menu.custom_minimum_size.x, minf(content.get_combined_minimum_size().y + 40, viewport_size.y - 24))
