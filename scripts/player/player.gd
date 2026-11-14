@@ -11,6 +11,12 @@ var state: String = "idle"
 var enabled: bool = false
 var touch_axis := Vector2.ZERO
 var touch_jump: bool = false
+var touch_jump_held := false
+var touch_jump_variable := false
+var _buffer_variable := false
+var _variable_jump_active := false
+var _jump_cut_done := false
+const JUMP_RELEASE_SPEED := 4.8
 var avatar: Node3D
 var respawn_position := Vector3(0, 5, 12)
 const CAMERA_MIN_PITCH := -55.0 * PI / 180.0
@@ -123,6 +129,9 @@ func _physics_process(delta: float) -> void:
 		velocity.z = 0.0
 		movement_speed = 0.0
 		_jump_buffer_left = 0.0
+		touch_jump_held = false
+		touch_jump_variable = false
+		_variable_jump_active = false
 		return
 	var grounded_before := is_on_floor()
 	var keyboard_axis := Input.get_vector("left", "right", "forward", "back")
@@ -132,6 +141,8 @@ func _physics_process(delta: float) -> void:
 	direction = direction.normalized()
 	var top_speed := RUN_SPEED if keyboard_axis.is_zero_approx() or Input.is_action_pressed("run") else WALK_SPEED
 	var target := Vector2(direction.x, direction.z) * top_speed * axis.length()
+	var previous_speed := movement_speed
+	var previous_heading := avatar.rotation.y
 	var horizontal := Vector2(velocity.x, velocity.z)
 	var acceleration := AIR_ACCELERATION
 	if is_on_floor():
@@ -145,14 +156,22 @@ func _physics_process(delta: float) -> void:
 	_jump_buffer_left = maxf(0.0, _jump_buffer_left - delta)
 	if Input.is_action_just_pressed("jump") or touch_jump:
 		_jump_buffer_left = JUMP_BUFFER_TIME
+		_buffer_variable = touch_jump_variable or Input.is_action_just_pressed("jump")
+		touch_jump_variable = false
 	touch_jump = false
 	if not is_on_floor():
 		velocity.y -= GRAVITY * delta
 	if _jump_buffer_left > 0 and _coyote_left > 0 and velocity.y <= 0:
 		velocity.y = JUMP_SPEED
+		_variable_jump_active = _buffer_variable
+		_jump_cut_done = false
 		jumped.emit()
 		_jump_buffer_left = 0.0
 		_coyote_left = 0.0
+	if _variable_jump_active and not _jump_cut_done and not (touch_jump_held or Input.is_action_pressed("jump")):
+		if velocity.y > JUMP_RELEASE_SPEED:
+			velocity.y = JUMP_RELEASE_SPEED
+		_jump_cut_done = true
 	if direction.length() > 0.1:
 		avatar.rotation.y = rotate_toward(avatar.rotation.y, atan2(-direction.x, -direction.z), TURN_SPEED * delta)
 	if is_on_floor() and velocity.y <= 0:
@@ -160,6 +179,7 @@ func _physics_process(delta: float) -> void:
 	var impact_speed := maxf(0.0, -velocity.y)
 	move_and_slide()
 	if not grounded_before and is_on_floor():
+		_variable_jump_active = false
 		landed.emit(impact_speed)
 		if impact_speed >= 7.0:
 			impact_camera_left = 0.18
@@ -171,10 +191,11 @@ func _physics_process(delta: float) -> void:
 		_running_gait = false
 	state = "air" if not is_on_floor() else ("idle" if movement_speed < 0.15 else ("run" if _running_gait else "walk"))
 	avatar.animate(delta, movement_speed > 0.15, _running_gait, is_on_floor() and velocity.y <= 0, velocity.y, movement_speed)
+	avatar.animate_motion(delta, angle_difference(previous_heading, avatar.rotation.y) / maxf(delta, 0.001), (movement_speed - previous_speed) / maxf(delta, 0.001), is_on_floor())
 	position.x = clampf(position.x, -125, 125)
 	position.z = clampf(position.z, -125, 125)
 	if position.y < -25:
-		position = respawn_position
+		return_to_checkpoint()
 
 func try_small_step(motion: Vector3) -> void:
 	if motion.length_squared() < 0.000001:
@@ -202,3 +223,27 @@ func try_small_step(motion: Vector3) -> void:
 	var lift := STEP_HEIGHT + down.get_travel().y
 	if lift > 0.01 and lift <= STEP_HEIGHT:
 		global_position.y += lift + 0.002
+
+func launch(speed: float) -> void:
+	if not enabled:
+		return
+	velocity.y = clampf(speed, JUMP_SPEED, 14.0)
+	avatar.start_magic_twirl()
+	_coyote_left = 0.0
+	_jump_buffer_left = 0.0
+	_variable_jump_active = false
+	_jump_cut_done = true
+	jumped.emit()
+
+func return_to_checkpoint() -> void:
+	position = respawn_position
+	velocity = Vector3.ZERO
+	movement_speed = 0.0
+	_jump_buffer_left = 0.0
+	_coyote_left = 0.0
+	_variable_jump_active = false
+	impact_camera_left = 0.0
+	camera.v_offset = 0.0
+	avatar.reset_motion()
+	camera.make_current()
+	yaw.global_position = global_position + CAMERA_FOCUS

@@ -53,7 +53,7 @@ Siga os pilares de luz azul. Ainda faltam %d pedras." % (3 - collected.size())
 		return "Lia
 As três marcas estão reunidas! Ative o obelisco dourado junto ao portão. A floresta reconhecerá você."
 	return "Lia
-A Árvore Ancestral espera além da passagem. A magia voltou a respirar."
+A Árvore Ancestral espera além da passagem. Siga as marcas douradas para explorar também a Trilha dos Ventos: as pedras de fogo e jade impulsionam seus saltos."
 
 func collect(id: String) -> bool:
 	if stage != 1 or not id in ["stone_0", "stone_1", "stone_2"] or id in collected or inventory.size() >= capacity:

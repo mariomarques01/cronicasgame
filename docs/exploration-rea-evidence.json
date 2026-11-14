@@ -1,0 +1,37 @@
+{
+  "tool": {
+    "name": "rea-agents",
+    "version": "6.9.0",
+    "repository": "https://github.com/morluto/rea"
+  },
+  "source_sha256": "78e0ad9c74b868da293e5ee54471a3a13cb0790be3c5fe4ac2e121c9022e0243",
+  "evidence_id": "ev_7a5a61b9a64926c41fd4ffcd106dd7c58ea2153a491af52a9b31207bcc281ad6",
+  "operation": "extract_artifact",
+  "integrity_policy": "fail",
+  "artifacts": [
+    {
+      "artifact_id": "art_a73a51605dba2e58a2080f0c8e696a2e334df46961763b88293a954a4498856a",
+      "relative_path": "SuperMak64-Godot/scripts/objects/bounce_pad.gd",
+      "sha256": "70210d9daaf299f3e8a255b2f8267f387e14ddd63edbdced0963a069896a3a81",
+      "bytes_written": 6368,
+      "created": true
+    },
+    {
+      "artifact_id": "art_468f19b20c14eabc0f1f268e77ba9616008ec15f0c0fc3dd8d1d6cce078ffda6",
+      "relative_path": "SuperMak64-Godot/scripts/objects/checkpoint.gd",
+      "sha256": "e3835ec527680a3cfa0a05cd4261c95618ce01b04995ee0a9b5835a6f4e18aae",
+      "bytes_written": 16997,
+      "created": true
+    },
+    {
+      "artifact_id": "art_3068eede366c19c0356457d32fa52a02b2c9412e1f04d19d315c41748168269b",
+      "relative_path": "SuperMak64-Godot/scripts/player/mak_animator.gd",
+      "sha256": "aae22a2e287b63019fb6bbffe4fca061f6984a4754346531e494b4e956a343ee",
+      "bytes_written": 112903,
+      "created": true
+    }
+  ],
+  "containment_verified": true,
+  "integrity_contradictions": [],
+  "analysis": "Static source study; original game not executed. Gameplay and visuals adapted for Eldervale with original implementation."
+}

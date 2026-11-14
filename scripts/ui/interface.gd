@@ -100,7 +100,7 @@ func _ready() -> void:
 	quest_progress.position = Vector2(18, 113)
 	quest_progress.add_theme_color_override("font_color", Color("d1bb80"))
 	quest_panel.add_child(quest_progress)
-	controls = label("WASD  Mover     Shift  Correr     Espaço  Pular     E  Interagir     R  Câmera     F5 / F9  Salvar / carregar", 12)
+	controls = label("WASD  Mover     Shift  Correr     Espaço  Segurar para salto alto     E  Interagir     R  Câmera     F5 / F9  Salvar / carregar", 12)
 	controls.add_theme_stylebox_override("normal", frame_style(Color(0.035, 0.065, 0.06, 0.85), Color(0.6, 0.51, 0.31, 0.35), 8))
 	hud.add_child(controls)
 	hint = label("", 17)
@@ -236,6 +236,9 @@ func pause_menu() -> void:
 func settings_menu() -> void:
 	clear_menu("Configurações")
 	button("Pausar jogo", pause_menu)
+	button("Voltar ao marco", func():
+		world.player.return_to_checkpoint()
+		show_play())
 	button("Centralizar câmera", func():
 		show_play()
 		world.player.center_camera())
