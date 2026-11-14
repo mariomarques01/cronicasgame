@@ -173,7 +173,7 @@ func activate_checkpoint() -> bool:
 	checkpoint_active = true
 	checkpoint_gem.material_override = gold
 	energy_burst(checkpoint_position)
-	world.ui.notify("Marco dos Ventos ativado • retorne pelas Configurações")
+	world.ui.notify("Marco ativado • segure Pular para saltar alto.\nRetorno: Configurações.")
 	return true
 
 func _physics_process(delta: float) -> void:
