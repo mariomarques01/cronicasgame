@@ -29,6 +29,16 @@ máxima de duas vezes por segundo enquanto a jornada está ativa. Mostra posiç�
 e orientação da câmera do jogador e abre a vista aérea quando acionado. A imagem
 é recortada por shader circular; não é uma ilustração estática.
 
+A missão ocupa uma faixa de 58 pixels CSS, em vez do painel móvel anterior de
+132 pixels. Ela mostra somente um resumo do objetivo atual; um toque abre o
+título, objetivo e progresso completos em um menu. A faixa não repete o progresso
+nem o título longo sobre o cenário.
+
+A engrenagem tem oito dentes e fundo circular. Ela abre Configurações, com a
+opção **Pausar jogo**. O botão de pausa foi retirado dos atalhos permanentes;
+Mochila, Interagir e Pular permanecem acessíveis. O minimapa móvel passou de
+90 para 72 pixels CSS, preservando a área de toque e a correção Retina.
+
 A barra do retrato mostra **etapas reais da missão (0–4)**. Os indicadores mostram
 **pedras coletadas (0–3)** e **regiões abertas (1–2)**. O retrato se chama
 “Explorador”: Lia continua sendo a guardiã/NPC. Não foram inventados níveis, XP,
@@ -50,23 +60,26 @@ geradas por IA nem promessa de paridade com o conceito cinematográfico.
 
 ![Antes](screenshots/visual-before.png)
 
-### Cenário revisado e HUD em desktop
+### Primeira revisão do cenário e HUD em desktop (antes da faixa compacta)
 
 ![Desktop](screenshots/visual-hud-desktop.png)
 
-### HUD no celular em pé
+### HUD atual no celular em pé, com faixa compacta (DPR 3)
 
 ![Celular](screenshots/visual-hud-portrait.png)
 
 ## Validação
 
-217 verificações de integração aprovadas, zero falhas. Incluem a missão até
+228 verificações de integração aprovadas, zero falhas. Incluem a missão até
 abrir o portão, save/load, animações, acessos e colisões, joystick e segundo dedo,
 vegetação fora dos acessos/cultivos e HUD/pausa em 1280×720, 390×844 e 844×390.
 O minimapa compartilha o mundo real e os indicadores acompanham o estado real.
 As verificações Retina cobrem retrato e paisagem em DPR 1, 2 e 3, incluindo
 botões com pelo menos 64 pixels CSS de largura, toque em coordenadas físicas,
 arrasto e liberação do joystick, e canvas temporariamente vazio na rotação.
+Os testes também acionam a faixa da missão e a engrenagem com coordenadas
+físicas em DPR 3, conferindo detalhes completos, pausa dentro de Configurações,
+retorno ao jogo e ausência do botão de pausa entre os atalhos.
 
 Exportações release Web e Windows geradas. O pacote Web é iniciado de fora do
 projeto por `tests/export_smoke.gd`, verificando recursos, texturas e a missão.

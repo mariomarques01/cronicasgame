@@ -349,6 +349,7 @@ func run() -> void:
 	check(world.player.position.x > 3 and world.player.is_on_floor(), "Caminha pela frente do celeiro sem travar nas camadas do piso")
 	await check_hud_layout(world)
 	await check_retina_hud(world)
+	await check_compact_hud(world)
 	if not previous.is_empty():
 		file = FileAccess.open(game.SAVE_PATH, FileAccess.WRITE)
 		file.store_string(previous)
@@ -516,6 +517,70 @@ func check_retina_hud(world: Node3D) -> void:
 	var valid_design := root.content_scale_size
 	scaler.apply_css_size(root, Vector2i.ZERO)
 	check(root.content_scale_size == valid_design, "Rotação não aplica canvas temporariamente vazio")
+	root.content_scale_mode = original_mode
+	root.content_scale_aspect = original_aspect
+	root.content_scale_size = original_design
+	root.size = original_size
+	world.ui.touch.active = original_touch
+	world.ui.show_play()
+
+func tap_hud(world: Node3D, action: Button) -> void:
+	var press := InputEventScreenTouch.new()
+	press.index = 4
+	press.pressed = true
+	press.position = root.get_final_transform() * action.get_global_rect().get_center()
+	root.push_input(press, false)
+	press.pressed = false
+	root.push_input(press, false)
+
+func menu_action(world: Node3D, title: String) -> Button:
+	for child in world.ui.content.get_children():
+		if child is Button and child.text == title:
+			return child
+	return null
+
+func check_compact_hud(world: Node3D) -> void:
+	var original_size := root.size
+	var original_mode := root.content_scale_mode
+	var original_aspect := root.content_scale_aspect
+	var original_design := root.content_scale_size
+	var original_touch: bool = world.ui.touch.active
+	root.size = Vector2i(1170, 2532)
+	preload("res://scripts/ui/display_scale.gd").apply_css_size(root, Vector2i(390, 844))
+	world.ui.touch.active = true
+	world.ui.show_play()
+	for frame in 10:
+		await process_frame
+	check(world.ui.quest_panel.size.y <= 64, "Missão recolhida ocupa no máximo 64 pixels CSS de altura")
+	check(not world.ui.objective.visible and not world.ui.quest_progress.visible and world.ui.ornament.quest_summary.visible, "HUD de missão mostra só o resumo sem textos repetidos")
+	check(world.ui.mobile_buttons.get_child_count() == 3, "HUD móvel fica com três ações principais")
+	var no_pause := true
+	for child in world.ui.mobile_buttons.get_children() + world.ui.desktop_actions.get_children():
+		if child is Button:
+			no_pause = no_pause and not "Pausa" in child.text and not "Pausa" in child.tooltip_text
+	check(no_pause, "Pausa não ocupa um botão permanente no HUD")
+	tap_hud(world, world.ui.ornament.quest_button)
+	check(world.ui.menu.visible and not world.player.enabled, "Toque na faixa abre os detalhes da missão")
+	var has_objective := false
+	for child in world.ui.content.get_children():
+		if child is Label and child.text == game.objective():
+			has_objective = true
+	check(has_objective, "Detalhes preservam o objetivo completo e atual da missão")
+	var back := menu_action(world, "Voltar ao jogo")
+	check(back != null, "Detalhes da missão oferecem retorno ao jogo")
+	if back:
+		back.pressed.emit()
+	tap_hud(world, world.ui.ornament.settings)
+	check(world.ui.menu.visible and world.ui.content.get_child(0).text == "Configurações", "Engrenagem abre Configurações por toque em DPR 3")
+	var pause := menu_action(world, "Pausar jogo")
+	check(pause != null, "Opção Pausar jogo está dentro de Configurações")
+	if pause:
+		pause.pressed.emit()
+	check(not world.player.enabled and menu_action(world, "Retomar") != null, "Pausar pelas configurações abre o menu de pausa")
+	var resume := menu_action(world, "Retomar")
+	if resume:
+		resume.pressed.emit()
+	check(world.player.enabled and not world.ui.menu.visible, "Retomar após pausa devolve controle do personagem")
 	root.content_scale_mode = original_mode
 	root.content_scale_aspect = original_aspect
 	root.content_scale_size = original_design
