@@ -13,6 +13,8 @@ func _initialize() -> void:
 	call_deferred("run")
 
 func run() -> void:
+	root.size = Vector2i(1280, 720)
+	await process_frame
 	var scene := load("res://scenes/main/main.tscn") as PackedScene
 	if not check(scene != null, "Cena principal incluída no pacote"):
 		quit(1)
@@ -20,11 +22,16 @@ func run() -> void:
 	var world: Node3D = scene.instantiate()
 	root.add_child(world)
 	await physics_frame
-	for path in ["GoldenAcres/CozyTimberHouse", "GoldenAcres/FarmBuildings/Workshop", "GoldenAcres/FarmBuildings/Barn", "GoldenAcres/FarmBuildings/Windmill/SlowRotor", "Trees", "Lia/WolfCharacter"]:
+	for path in ["GoldenAcres/CozyTimberHouse", "GoldenAcres/FarmBuildings/Workshop", "GoldenAcres/FarmBuildings/Barn", "GoldenAcres/FarmBuildings/Windmill/SlowRotor", "Trees", "Lia/WolfCharacter", "MeadowDetails", "ValleyAtmosphere/ValleyEnvironment"]:
 		check(world.get_node_or_null(path) != null, "Recurso exportado: " + path)
 	if failures > 0:
 		quit(1)
 		return
+	check(ResourceLoader.exists("res://assets/ui/hud/bag.svg") and ResourceLoader.exists("res://assets/ui/hud/bunny_portrait.png"), "Arte do HUD selecionada para exportação")
+	if not check(world.ui.ornament != null, "HUD ornamental inicializado no pacote"):
+		quit(1)
+		return
+	check(world.ui.ornament.minimap.viewport.world_3d == world.get_world_3d(), "Minimapa funcional incluído no pacote")
 	check_texture_budget(world)
 	check(not ResourceLoader.exists("res://assets/models/golden_acres.glb"), "Pacote não inclui a fazenda original substituída")
 	check(not ResourceLoader.exists("res://assets/models/farm_without_fences.res"), "Malha antiga com pedras/flores fora do pacote")

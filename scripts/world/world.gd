@@ -12,7 +12,9 @@ var stones: Dictionary = {}
 var sun: DirectionalLight3D
 var playing: bool = false
 var clock: float = 0.3
-var day_speed: float = 0.006
+const DAY_SPEED := 0.0006
+var day_speed: float = DAY_SPEED
+var atmosphere: Node3D
 var nearest: String = ""
 var map_camera: Camera3D
 var windmill: Node3D
@@ -25,7 +27,8 @@ func material(color: Color, glow: bool = false) -> StandardMaterial3D:
 	if glow:
 		mat.emission_enabled = true
 		mat.emission = color
-		mat.emission_energy_multiplier = 2
+		mat.emission_energy_multiplier = 0.3
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	return mat
 
 func prop(mesh: Mesh, pos: Vector3, color: Color, solid: bool = false, glow: bool = false) -> Node3D:
@@ -54,30 +57,27 @@ func _ready() -> void:
 	terrain = StaticBody3D.new()
 	terrain.set_script(TerrainScript)
 	add_child(terrain)
-	var environment := WorldEnvironment.new()
-	var env := Environment.new()
-	env.background_mode = Environment.BG_SKY
-	var sky := Sky.new()
-	var sky_material := ProceduralSkyMaterial.new()
-	sky_material.sky_top_color = Color("5291b6")
-	sky_material.sky_horizon_color = Color("e2d6b7")
-	sky.sky_material = sky_material
-	env.sky = sky
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color("b6c9bd")
-	env.ambient_light_energy = 0.65
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
-	environment.environment = env
-	add_child(environment)
+	atmosphere = Node3D.new()
+	atmosphere.set_script(preload("res://scripts/world/valley_atmosphere.gd"))
+	atmosphere.world = self
+	add_child(atmosphere)
 	sun = DirectionalLight3D.new()
 	sun.rotation_degrees = Vector3(-48, -32, 0)
-	sun.light_color = Color("ffe4b4")
+	sun.light_color = Color("fff0d6")
+	sun.light_energy = 0.95
+	sun.light_angular_distance = 0.7
+	sun.shadow_bias = 0.035
+	sun.directional_shadow_blend_splits = true
 	sun.shadow_enabled = true
 	sun.directional_shadow_max_distance = 85
 	add_child(sun)
 	build_farm()
 	build_vegetation()
 	build_interactions()
+	var meadow := Node3D.new()
+	meadow.set_script(preload("res://scripts/world/meadow_details.gd"))
+	meadow.world = self
+	add_child(meadow)
 	player = CharacterBody3D.new()
 	player.set_script(PlayerScript)
 	player.position = ground(-29, 33, 2)
@@ -200,7 +200,10 @@ func _process(delta: float) -> void:
 		windmill.rotation.z += delta * 0.35
 	clock = fmod(clock + delta * day_speed, 1.0)
 	sun.rotation.x = -clock * TAU
-	sun.light_energy = maxf(0.12, sin(clock * TAU))
+	var daylight := clampf(sin(clock * TAU), 0.0, 1.0)
+	sun.light_energy = lerpf(0.08, 0.95, daylight)
+	sun.light_color = Color("d5b7a2").lerp(Color("fff0d6"), daylight)
+	atmosphere.set_daylight(daylight)
 	nearest = ""
 	var distance := 3.5
 	for target: Dictionary in targets:

@@ -12,6 +12,8 @@ func _initialize() -> void:
 	call_deferred("run")
 
 func run() -> void:
+	root.size = Vector2i(1280, 720)
+	await process_frame
 	game = root.get_node("Game")
 	var previous := ""
 	if FileAccess.file_exists(game.SAVE_PATH):
@@ -37,6 +39,7 @@ func run() -> void:
 	check(world.playing and not title.visible and world.ui.hud.visible, "Botão da arte inicia jornada e revela jogo")
 	await physics_frame
 	check_farm_paths(world)
+	check_visual_polish(world)
 	check(world.get_node_or_null("GoldenAcres") != null, "Fazenda Golden Acres importada no cenário jogável")
 	var trees := world.get_node("Trees")
 	check(trees.pine_count >= 3 and trees.tree_count > 100, "Pinheiros internos e árvores externas carregados")
@@ -344,6 +347,7 @@ func run() -> void:
 		await physics_frame
 	world.player.touch_axis = Vector2.ZERO
 	check(world.player.position.x > 3 and world.player.is_on_floor(), "Caminha pela frente do celeiro sem travar nas camadas do piso")
+	await check_hud_layout(world)
 	if not previous.is_empty():
 		file = FileAccess.open(game.SAVE_PATH, FileAccess.WRITE)
 		file.store_string(previous)
@@ -412,3 +416,49 @@ func check_farm_paths(world: Node3D) -> void:
 				var uv := (point - Vector2(layout.mask_bounds[0], layout.mask_bounds[1])) / Vector2(layout.mask_bounds[2] - layout.mask_bounds[0], layout.mask_bounds[3] - layout.mask_bounds[1])
 				clear = clear and image.get_pixel(int(uv.x * image.get_width()), int(uv.y * image.get_height())).r < 0.01
 		check(clear, "Estrada não invade a plantação: " + str(plot.id))
+
+func check_visual_polish(world: Node3D) -> void:
+	var meadow := world.get_node("MeadowDetails")
+	check(meadow.grass_count > 1000 and meadow.grass_count <= meadow.MAX_GRASS, "Cobertura vegetal tem orçamento limitado de instâncias")
+	check(meadow.flower_count > 100 and meadow.flower_count <= meadow.MAX_FLOWERS, "Flores têm orçamento limitado de instâncias")
+	var clear := true
+	for pose: Transform3D in meadow.grass_placements + meadow.flower_placements:
+		clear = clear and meadow.can_plant(Vector2(pose.origin.x, pose.origin.z))
+	check(clear, "Detalhes não invadem caminhos, casa, construções ou cultivos protegidos")
+	check(meadow.find_children("*", "CollisionObject3D", true, false).is_empty(), "Vegetação decorativa não acrescenta obstáculos à circulação")
+	check(world.atmosphere.environment.fog_enabled and not world.atmosphere.environment.volumetric_fog_enabled, "Névoa usa recurso compatível com WebGL")
+	world.atmosphere.set_daylight(0.0)
+	var night: float = world.atmosphere.environment.ambient_light_energy
+	world.atmosphere.set_daylight(1.0)
+	check(world.atmosphere.environment.ambient_light_energy > night, "Iluminação ambiente acompanha dia e noite")
+	check(world.ui.quest_panel.visible and world.ui.objective.text == root.get_node("Game").objective(), "HUD exibe objetivo real da missão")
+	check(world.ui.ornament.minimap.viewport.world_3d == world.get_world_3d(), "Minimapa usa o mundo real da fazenda")
+	check(world.ui.ornament.progress.value == root.get_node("Game").stage and world.ui.ornament.stone_count.text == "%d / 3" % root.get_node("Game").collected.size(), "Retrato e contadores mostram progresso real, sem valores fictícios")
+	check(not world.ui.hint.visible and not world.ui.message.visible, "HUD não exibe painéis vazios de interação ou aviso")
+
+func check_hud_layout(world: Node3D) -> void:
+	var original_size := root.size
+	var original_touch: bool = world.ui.touch.active
+	for viewport_size: Vector2i in [Vector2i(1280, 720), Vector2i(390, 844), Vector2i(844, 390)]:
+		root.size = viewport_size
+		world.ui.touch.active = viewport_size.x < 1000
+		world.ui.show_play()
+		for frame in 10:
+			await process_frame
+		var screen := Rect2(Vector2.ZERO, Vector2(root.get_visible_rect().size))
+		check(screen.encloses(world.ui.quest_panel.get_global_rect()) and screen.encloses(world.ui.map_button.get_global_rect()), "Missão e mapa dentro da tela em " + str(viewport_size))
+		check(not world.ui.region.get_global_rect().intersects(world.ui.map_button.get_global_rect()) and not world.ui.quest_panel.get_global_rect().intersects(world.ui.map_button.get_global_rect()), "Missão não sobrepõe mapa em " + str(viewport_size))
+		if world.ui.touch.active:
+			var buttons_clear := true
+			for action: Button in world.ui.touch.action_buttons:
+				if action.is_visible_in_tree():
+					buttons_clear = buttons_clear and screen.encloses(action.get_global_rect())
+			check(buttons_clear, "Botões de toque dentro da tela em " + str(viewport_size))
+		world.ui.pause_menu()
+		for frame in 10:
+			await process_frame
+		check(screen.encloses(world.ui.menu.get_global_rect()), "Menu de pausa cabe na tela em " + str(viewport_size))
+		check(is_zero_approx(world.atmosphere.motes.speed_scale), "Partículas respeitam pausa em " + str(viewport_size))
+	root.size = original_size
+	world.ui.touch.active = original_touch
+	world.ui.show_play()

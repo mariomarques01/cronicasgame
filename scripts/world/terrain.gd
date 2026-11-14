@@ -39,23 +39,8 @@ func _ready() -> void:
 	var terrain_mesh := surface.commit()
 	var visual := MeshInstance3D.new()
 	visual.mesh = terrain_mesh
-	var shader := Shader.new()
-	shader.code = """shader_type spatial;
-	uniform sampler2D grass_tex: source_color, repeat_enable;
-	uniform sampler2D dirt_tex: source_color, repeat_enable;
-	uniform sampler2D road_mask: repeat_disable, filter_linear;
-	uniform vec4 road_bounds;
-	varying vec3 world_pos;
-	void vertex(){world_pos=(MODEL_MATRIX*vec4(VERTEX,1.0)).xyz;}
-	void fragment(){
-		vec2 p=world_pos.xz;
-		vec2 road_uv=(p-road_bounds.xy)/road_bounds.zw;
-		float path=texture(road_mask,road_uv).r;
-		ALBEDO=mix(texture(grass_tex,p/8.0).rgb,texture(dirt_tex,p/2.0).rgb,path);
-		ROUGHNESS=0.95;
-	}"""
 	var terrain_material := ShaderMaterial.new()
-	terrain_material.shader = shader
+	terrain_material.shader = preload("res://assets/shaders/meadow.gdshader")
 	terrain_material.set_shader_parameter("grass_tex",load("res://assets/grass/emerald_meadow_albedo.png"))
 	terrain_material.set_shader_parameter("dirt_tex",load("res://assets/textures/dirt.png"))
 	var paths: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_paths.json"))

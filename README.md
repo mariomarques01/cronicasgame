@@ -1,5 +1,22 @@
 # As Crônicas de Eldervale — O Segredo da Árvore Celestial
 
+## Revisão visual e HUD de fantasia
+
+O cenário recebeu uma paleta de grama menos saturada, caminhos com variação de
+terra e cascalho, tufos de grama e flores com vento, relevo distante e névoa leve.
+O ciclo solar agora dura aproximadamente 28 minutos, com ambiente e céu
+acompanhando o dia e a noite.
+
+O HUD usa molduras douradas, retrato do próprio coelho, missão, minimapa circular
+do mundo real e botões com ícones. A barra mostra etapas da missão; os contadores
+mostram pedras antigas e regiões abertas. Não são vida, XP ou moedas: esses
+sistemas ainda não existem. Mochila, pausa, interação, pulo e mapa continuam
+funcionais, com disposição própria para celular.
+
+Veja [capturas reais e validação](docs/visual-polish.md). São renderizações do
+Godot, não a ilustração conceitual. Esta entrega aproxima a direção visual;
+não reproduz o acabamento da imagem gerada nem adiciona os três poderes.
+
 A abertura usa a arte original enviada em `MENU.zip`, preservada em `assets/ui/title_screen.png`. Clique ou toque no botão verde desenhado para iniciar a jornada. A imagem se ajusta à tela sem cortar o logo; as áreas excedentes usam o cenário das bordas escurecido. “Continuar jornada” aparece abaixo quando existe um salvamento. A opção experimental “Ver fazenda 3D colorida” foi removida do menu.
 
 ## Cenário atual: Golden Acres (Meshy)
