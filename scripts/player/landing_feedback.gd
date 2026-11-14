@@ -12,6 +12,8 @@ var jump_count := 0
 var skid_count := 0
 var collection_count := 0
 var last_position := Vector3.ZERO
+var dust_mesh: QuadMesh
+var sparkle_mesh: QuadMesh
 
 func _ready() -> void:
 	name = "LandingFeedback"
@@ -34,6 +36,15 @@ func _ready() -> void:
 	var mesh := QuadMesh.new()
 	mesh.size = Vector2(0.4, 0.4)
 	mesh.material = mat
+	dust_mesh = mesh
+	sparkle_mesh = mesh.duplicate() as QuadMesh
+	var sparkle_mat := mat.duplicate() as StandardMaterial3D
+	sparkle_mat.albedo_color = Color.WHITE
+	sparkle_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	sparkle_mat.emission_enabled = true
+	sparkle_mat.emission = Color("70eaff")
+	sparkle_mat.emission_energy_multiplier = 1.4
+	sparkle_mesh.material = sparkle_mat
 	for i in 8:
 		var burst := CPUParticles3D.new()
 		burst.name = "Dust%d" % i
@@ -74,11 +85,12 @@ func emit_burst(at: Vector3, strength: float, tint: Color, sparkling: bool = fal
 	burst.global_position = at + Vector3.UP * 0.08
 	burst.color = tint
 	burst.amount = 12 if sparkling else 8
-	burst.lifetime = 0.55 if sparkling else 0.35
+	burst.lifetime = 0.65 if sparkling else 0.35
+	burst.mesh = sparkle_mesh if sparkling else dust_mesh
 	burst.initial_velocity_min = 0.6 * strength
 	burst.initial_velocity_max = 1.3 * strength
-	burst.scale_amount_min = (0.12 if sparkling else 0.3) * strength
-	burst.scale_amount_max = (0.28 if sparkling else 0.6) * strength
+	burst.scale_amount_min = (0.28 if sparkling else 0.3) * strength
+	burst.scale_amount_max = (0.55 if sparkling else 0.6) * strength
 	burst.gravity = Vector3(0, 0.5 if sparkling else -1.0, 0)
 	burst.restart()
 	burst.emitting = true

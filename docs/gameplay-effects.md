@@ -13,7 +13,7 @@ extraído `juice.gd` e `mak_player.gd` complementa a referência.
 | `player_skid`, cooldown de evento | Rajada curta ao frear/reverter uma corrida, com intervalo mínimo de 0,28 s |
 | `player_land`, intensidade pela velocidade de contato | Tamanho e velocidade da poeira proporcionais ao impacto; impulso vertical de câmera limitado a 7,5 cm e 0,18 s para contatos acima de 7 m/s |
 | `juice.gd`, pool e orçamento de efeitos | Oito emissores reutilizáveis, no máximo 12 partículas por emissor, sem criar nós ou texturas em eventos |
-| Eventos semânticos separados do efeito | Salto, frenagem e pouso sinalizados pelo controlador; brilho ciano apenas após coleta aceita |
+| Eventos semânticos separados do efeito | Salto, frenagem e pouso sinalizados pelo controlador; brilho ciano aditivo apenas após coleta aceita |
 
 A transição correr/andar → repouso agora mistura por 0,18 s para um clipe estático
 local, em vez de buscar e congelar abruptamente o primeiro quadro de Walking.
@@ -31,7 +31,7 @@ A corrida usa distância percorrida como aproximação da cadência, não evento
 contato exatos dos pés. As superfícies ainda compartilham poeira neutra; efeitos
 de água e identificação de materiais do SuperMak não foram adaptados.
 
-Validação: 281 verificações aprovadas, zero falhas. Testes do controlador real cobrem decolagem, corrida, frenagem,
+Validação: 282 verificações aprovadas, zero falhas. Testes do controlador real cobrem decolagem, corrida, frenagem,
 repouso sem emissão, pool fixo sob rajadas repetidas, brilho de coleta, pausa e
 retorno da câmera ao offset original. Somam-se às verificações existentes de
 colisão, salto, diálogo, HUD, salvamento e exportação. Desempenho em aparelho

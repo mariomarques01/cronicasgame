@@ -707,6 +707,7 @@ func check_third_person_controls(world: Node3D) -> void:
 	var collections_before: int = feedback.collection_count
 	feedback.on_collection(player.global_position + Vector3.UP)
 	check(feedback.collection_count == collections_before + 1, "Coleta aciona brilho localizado")
+	check(feedback.sparkle_mesh.material.emission_enabled and feedback.sparkle_mesh.material.blend_mode == BaseMaterial3D.BLEND_MODE_ADD, "Coleta usa brilho aditivo sem luz adicional")
 	for event in 40:
 		feedback.on_landed(12.0)
 	check(feedback.bursts.size() == pool_size and feedback.get_child_count() == pool_size, "Rajadas repetidas mantêm pool fixo sem alocar nós")
