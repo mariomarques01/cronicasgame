@@ -358,6 +358,7 @@ func run() -> void:
 	check_geometry_budget(world)
 	await check_character_jumps(world)
 	await check_automatic_quest(world)
+	await check_ancient_ruins(world)
 	if had_previous:
 		file = FileAccess.open(game.SAVE_PATH, FileAccess.WRITE)
 		file.store_string(previous)
@@ -1022,8 +1023,8 @@ func check_automatic_quest(world: Node3D) -> void:
 	await physics_frame
 	check(game.stage == 4 and game.regions == ["valley", "forest"] and not world.gate.visible and world.gate.get_child(1).disabled, "Passagem e colisão mudam automaticamente na terceira pedra")
 	check(not 2 in observed and not 3 in observed, "Observadores não recebem objetivos intermediários de conversa ou mecanismo")
-	check(world.ui.ornament.progress.value == 2 and world.ui.ornament.progress.max_value == 2, "HUD mostra dois objetivos reais sem etapas antigas")
-	check(game.objective().contains("Explore") and not game.objective().contains("Lia"), "Próximo objetivo orienta exploração automaticamente")
+	check(world.ui.ornament.progress.value == 2 and world.ui.ornament.progress.max_value == 5, "HUD mostra sequência da jornada após abrir a passagem")
+	check(game.objective().contains("Ruínas") and not game.objective().contains("Lia"), "Próximo objetivo orienta exploração automaticamente")
 	check(world.ui.message.text.contains("Passagem") and not world.ui.message.text.contains("Jogo salvo"), "Salvamento silencioso preserva anúncio da passagem aberta")
 	var after: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(game.SAVE_PATH))
 	game.reset()
@@ -1031,6 +1032,8 @@ func check_automatic_quest(world: Node3D) -> void:
 	for legacy_stage in [2, 3]:
 		var legacy := after.duplicate(true)
 		legacy.stage = legacy_stage
+		legacy.version = 1
+		legacy.erase("runes")
 		legacy.regions = ["valley"]
 		check(game.valid_save(legacy), "Salvamento antigo válido aceito na etapa " + str(legacy_stage))
 		var file := FileAccess.open(game.SAVE_PATH, FileAccess.WRITE)
@@ -1042,3 +1045,133 @@ func check_automatic_quest(world: Node3D) -> void:
 	game.talk()
 	check(game.stage == stage_before, "Conversas posteriores não controlam avanço da missão")
 	world.ui.show_play()
+
+func walk_character(world: Node3D, point: Vector2, frames: int = 360) -> bool:
+	world.player.camera_yaw = 0.0
+	world.player.yaw.rotation.y = 0.0
+	for frame in frames:
+		var offset := point - Vector2(world.player.position.x,world.player.position.z)
+		if offset.length() < 0.3:
+			world.player.touch_axis = Vector2.ZERO
+			for stop in 8: await physics_frame
+			return true
+		world.player.touch_axis = offset.normalized() * minf(1.0,offset.length()/1.3)
+		await physics_frame
+	world.player.touch_axis = Vector2.ZERO
+	return false
+
+func check_ancient_ruins(world: Node3D) -> void:
+	world.start_game(false)
+	world.ui.touch.reset()
+	check(not game.enter_ruins() and not game.read_inscription("roots") and not game.reach_tree(), "Ruínas e árvore não avançam antes da missão inicial")
+	world.interact("lia")
+	world.ui.show_play()
+	for id in ["stone_0","stone_1","stone_2"]:world.interact(id)
+	world.player.position = world.ground(0,-47,0.08)
+	world.player.velocity = Vector3.ZERO
+	for frame in 12:await physics_frame
+	var layout = preload("res://scripts/world/ruins_layout.gd")
+	var route_ok := true
+	for point: Array in layout.config.paths[0].points:
+		var arrived: bool = await walk_character(world,Vector2(point[0],point[1]))
+		if not arrived:
+			route_ok = false
+			print("RUINS_ROUTE_BLOCKED ",point," at ",world.player.position)
+			break
+	check(route_ok, "Controlador percorre a trilha do portão até as ruínas sem saltos ou teletransporte")
+	check(game.stage == 5 and world.ruins.contains(world.player.position), "Entrar no pátio inicia investigação automaticamente")
+	check(not world.gate.visible and world.gate.get_child(1).disabled, "Passagem continua aberta durante a missão das ruínas")
+	var region: Node3D = world.get_node("AncientRuins")
+	check(region.get_node_or_null("EntranceArch") != null and region.get_node_or_null("WesternBrokenArch") != null, "Arquitetura de entrada e arco desabado carregados")
+	var architecture_triangles := 0
+	for node: Node in region.find_children("*","",true,false):
+		if node is MeshInstance3D:architecture_triangles += node.mesh.get_faces().size()/3
+		elif node is MultiMeshInstance3D:architecture_triangles += node.multimesh.mesh.get_faces().size()/3 * node.multimesh.instance_count
+	check(architecture_triangles < 15000, "Nova região mantém arquitetura e detalhes abaixo de 15 mil triângulos")
+	check(region.find_children("*","OmniLight3D",true,false).is_empty(), "Ruínas não acrescentam luzes dinâmicas")
+	var capsule := CapsuleShape3D.new()
+	capsule.radius = 0.36
+	capsule.height = 1.8
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = capsule
+	query.exclude = [world.player.get_rid(),world.terrain.get_rid(),world.gate.get_rid()]
+	for path: Dictionary in layout.config.paths:
+		var blocked := false
+		for segment in path.points.size()-1:
+			var a := Vector2(path.points[segment][0],path.points[segment][1])
+			var b := Vector2(path.points[segment+1][0],path.points[segment+1][1])
+			for step in ceili(a.distance_to(b))+1:
+				var p := a.lerp(b,minf(1.,float(step)/maxf(a.distance_to(b),1.)))
+				for side in [-1.,0.,1.]:
+					var at: Vector2 = p+(b-a).normalized().orthogonal()*side*(float(path.width)*.5-.5)
+					query.transform = Transform3D(Basis(),world.ground(at.x,at.y,.95))
+					if not world.get_world_3d().direct_space_state.intersect_shape(query,1).is_empty():
+						blocked = true
+		check(not blocked,"Centro e bordas da nova rota ficam livres para a cápsula: " + str(path.id))
+	var trees: Node3D = world.get_node("Trees")
+	var reserved_clear := true
+	var ancestral_visible := false
+	for tree: Dictionary in trees.placements:
+		if tree.height == 24.0 and is_zero_approx(tree.position.x) and is_equal_approx(tree.position.z,-94):
+			ancestral_visible = true
+			continue
+		if not tree.pine and layout.reserved(Vector2(tree.position.x,tree.position.z),2.0):reserved_clear = false
+	check(reserved_clear and ancestral_visible, "Clareira libera árvores das rotas preservando a Árvore Ancestral")
+	check(await walk_character(world,Vector2(-33,-78)) and await walk_character(world,Vector2(-34,-85.3)), "Caminho oeste até a primeira inscrição é caminhável")
+	world.ui.settings_menu()
+	var before: int = game.runes.size()
+	for frame in 70:await physics_frame
+	check(game.runes.size() == before, "Menus suspendem o tempo de leitura das inscrições")
+	world.ui.show_play()
+	for frame in 70:await physics_frame
+	check(game.runes == ["roots"] and game.stage == 5, "Permanecer junto à inscrição revela a primeira memória")
+	check(not game.read_inscription("roots") and not game.read_inscription("unknown"), "Leitura repetida ou desconhecida não duplica progresso")
+	var saved: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(game.SAVE_PATH))
+	check(saved.version == 2 and saved.runes == ["roots"] and saved.stage == 5, "Inscrição salva no novo formato automaticamente")
+	game.reset()
+	check(game.load_game() and game.runes == ["roots"] and game.stage == 5, "Continuar retoma a investigação sem repetir Lia ou as pedras")
+	world.ui.open_quest()
+	var journal_text := ""
+	for child: Node in world.ui.content.get_children():
+		if child is Label:journal_text += child.text
+	check(journal_text.contains("Raízes") and journal_text.contains("memória"), "Detalhes da missão preservam as inscrições lidas")
+	world.ui.show_play()
+	check(await walk_character(world,Vector2(-26,-83)) and await walk_character(world,Vector2(-18,-85.3)), "Travessia do pátio alcança a inscrição das águas")
+	for frame in 70:await physics_frame
+	check("waters" in game.runes and game.runes.size() == 2, "Segunda inscrição avança sem conversa ou janela obrigatória")
+	check(await walk_character(world,Vector2(-22,-86.8)) and await walk_character(world,Vector2(-26,-89.3)), "Caminho de pedra alcança a inscrição da luz")
+	for frame in 70:await physics_frame
+	check(game.stage == 6 and game.runes.size() == 3 and world.quest_goal().distance_to(world.ground(-3,-94)) < .1, "Terceira inscrição aponta automaticamente o objetivo da árvore")
+	var tree_route := true
+	for point: Vector2 in [Vector2(-22,-88),Vector2(-18,-87),Vector2(-12,-88),Vector2(-5,-91),Vector2(-3,-94)]:
+		if not await walk_character(world,point):
+			tree_route = false
+			print("TREE_ROUTE_BLOCKED ",point," at ",world.player.position)
+			break
+	check(tree_route, "Personagem percorre ligação entre ruínas e árvore com física real")
+	for frame in 12:await physics_frame
+	check(game.stage == 7 and game.completed_steps() == game.JOURNEY_STEPS and world.quest_goal() == Vector3.INF, "Chegada à Árvore Ancestral conclui a sequência sem voltar a Lia")
+	check(game.inventory.ancient_stone == 3 and game.regions == ["valley","forest"], "Investigação preserva inventário e regiões já liberadas")
+	var final_save: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(game.SAVE_PATH))
+	check(game.valid_save(final_save) and final_save.stage == 7, "Conclusão da jornada é salva e válida")
+	var bad := final_save.duplicate(true)
+	bad.runes.append("roots")
+	check(not game.valid_save(bad), "Save com inscrições duplicadas é rejeitado")
+	bad = final_save.duplicate(true)
+	bad.runes = []
+	check(not game.valid_save(bad), "Save avançado sem inscrições é rejeitado")
+	bad = final_save.duplicate(true)
+	bad.stage = 2
+	check(not game.valid_save(bad), "Etapas antigas não são graváveis no formato v2")
+	var invalid_body := JSON.stringify(bad)
+	var invalid_file := FileAccess.open(game.SAVE_PATH,FileAccess.WRITE)
+	invalid_file.store_string(invalid_body)
+	invalid_file.close()
+	check(not game.load_game() and game.stage == 7 and game.runes.size() == 3, "Carga inválida v2 preserva a jornada atual")
+	check(FileAccess.get_file_as_string(game.SAVE_PATH) == invalid_body, "Save inválido não é sobrescrito durante a validação")
+	invalid_file = FileAccess.open(game.SAVE_PATH,FileAccess.WRITE)
+	invalid_file.store_string(JSON.stringify(final_save))
+	invalid_file.close()
+	world.ui.notify("Inscrições decifradas • Siga a trilha da Árvore Ancestral")
+	for frame in 12:await process_frame
+	check(world.ui.message.size.y < 120, "Avisos com quebra de linha mantêm altura compacta")

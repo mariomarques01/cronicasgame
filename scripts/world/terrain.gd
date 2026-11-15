@@ -21,7 +21,8 @@ func base_height_at(x: float, z: float) -> float:
 	# A flat margin keeps coarse terrain triangles below every farm corner.
 	# Only the exterior forest transitions back into the surrounding hills.
 	var edge := maxf(absf(x) / 58.0, absf(z) / 56.0)
-	return lerpf(-0.05, height, smoothstep(1.0, 1.35, edge))
+	var original := lerpf(-0.05, height, smoothstep(1.0, 1.35, edge))
+	return preload("res://scripts/world/ruins_layout.gd").height_at(Vector2(x,z), original)
 
 func _ready() -> void:
 	var buildings: Array = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_buildings.json"))
@@ -46,6 +47,7 @@ func _ready() -> void:
 	var paths: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/farm_paths.json"))
 	var bounds: Array = paths.mask_bounds
 	terrain_material.set_shader_parameter("road_mask", load("res://assets/textures/farm_paths_mask.png"))
+	terrain_material.set_shader_parameter("ruins_mask", preload("res://assets/ruins/paths_mask.png"))
 	terrain_material.set_shader_parameter("road_bounds", Vector4(bounds[0], bounds[1], bounds[2] - bounds[0], bounds[3] - bounds[1]))
 	visual.material_override = terrain_material
 	ground_material = terrain_material

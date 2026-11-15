@@ -205,7 +205,7 @@ func refresh() -> void:
 		objective.text = Game.objective()
 		if ornament != null:
 			ornament.refresh(self)
-		quest_progress.text = "Pedras antigas  %d / 3" % Game.collected.size() if Game.stage == 1 else ("Passagem da floresta aberta" if Game.stage == 4 else "Explore e converse com Lia")
+		quest_progress.text = "Pedras antigas  %d / 3" % Game.collected.size() if Game.stage == 1 else ("Inscrições registradas  %d / 3" % Game.runes.size() if Game.stage >= 5 else ("Siga a trilha marcada no minimapa" if Game.stage >= 4 else "Converse com Lia para iniciar a jornada"))
 
 func dialogue(text: String) -> void:
 	clear_menu("O Chamado da Floresta")
@@ -244,13 +244,17 @@ func settings_menu() -> void:
 	button("Voltar ao jogo", show_play)
 
 func open_quest() -> void:
-	clear_menu("O Chamado da Floresta")
+	clear_menu(Game.active_quest_name())
 	var body := label(Game.objective(), 18)
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(body)
 	var progress_note := label(quest_progress.text, 15)
 	progress_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	content.add_child(progress_note)
+	if not Game.ruins_journal().is_empty():
+		var journal := label(Game.ruins_journal(), 15)
+		journal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		content.add_child(journal)
 	button("Voltar ao jogo", show_play)
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -302,7 +306,7 @@ func _process(delta: float) -> void:
 			message.text = ""
 	var viewport_size := get_viewport().get_visible_rect().size
 	var layout_key := [viewport_size, touch.active, world.player.enabled, world.map_camera.current,
-		menu.visible, content.get_child_count(), content.get_combined_minimum_size(), hint.text, message.text, notice_time > 0]
+		menu.visible, content.get_child_count(), content.get_combined_minimum_size(), hint.text, message.text, hint.get_minimum_size(), message.get_minimum_size(), notice_time > 0]
 	if layout_key == last_layout_key:
 		return
 	last_layout_key = layout_key
@@ -338,10 +342,10 @@ func layout_controls(viewport_size: Vector2) -> void:
 	controls.visible = not touch.active and viewport_size.x >= 900
 	controls.position = Vector2(margin, viewport_size.y - 49)
 	hint.visible = not hint.text.is_empty() and world.player.enabled
-	hint.size.x = minf(360, viewport_size.x - margin * 2)
+	hint.size = Vector2(minf(360, viewport_size.x - margin * 2), 0)
 	hint.position = Vector2((viewport_size.x - hint.size.x) * 0.5, viewport_size.y - (240 if touch.active else 110))
 	message.visible = notice_time > 0 and not message.text.is_empty()
-	message.size.x = minf(360, viewport_size.x - margin * 2)
+	message.size = Vector2(minf(360, viewport_size.x - margin * 2), 0)
 	message.position = Vector2(margin, 216)
 	if touch.active:
 		touch.visible = world.player.enabled

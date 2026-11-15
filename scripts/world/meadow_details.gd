@@ -69,6 +69,7 @@ func road_clearance(p: Vector2) -> float:
 	return clearance
 
 func can_plant(p: Vector2) -> bool:
+	if preload("res://scripts/world/ruins_layout.gd").reserved(p, 0.4): return false
 	if Rect2(-27, -13, 28, 26).has_point(p):
 		return false # House and courtyard, including the doorway.
 	if Geometry.contains(p / 55.0, world.terrain.building_footprints):

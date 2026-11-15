@@ -39,7 +39,7 @@ func _ready() -> void:
 				continue
 		add_tree(world.ground(x, z), (12.0 if inside else 8.0) * variation, inside)
 	# The quest landmark uses the same supplied exterior tree, at a larger scale.
-	add_tree(world.ground(0, -94), 24.0, false)
+	add_tree(world.ground(0, -94), 24.0, false, true)
 	var landmark := Marker3D.new()
 	landmark.name = "AncientTree"
 	landmark.position = world.ground(0, -94)
@@ -49,7 +49,9 @@ func _ready() -> void:
 func is_inside(point: Vector2) -> bool:
 	return Geometry2D.is_point_in_polygon(point, boundary)
 
-func add_tree(point: Vector3, height: float, inside: bool) -> void:
+func add_tree(point: Vector3, height: float, inside: bool, landmark: bool = false) -> void:
+	if not landmark and not inside and preload("res://scripts/world/ruins_layout.gd").reserved(Vector2(point.x,point.z), 2.0):
+		return
 	placements.append({"position": point, "height": height, "pine": inside})
 	if inside:
 		pine_count += 1

@@ -3,6 +3,11 @@ signal changed
 signal notice(message: String)
 const SAVE_PATH = "user://eldervale_v1.json"
 var quest: Dictionary = {}
+var ruins_quest: Dictionary = {}
+var ruins_definition: Dictionary = {}
+var runes: Array = []
+const RUNE_IDS := ["roots", "waters", "light"]
+const JOURNEY_STEPS := 5
 var stone_definition: Dictionary = {}
 var stage: int = 0
 var inventory: Dictionary = {}
@@ -14,6 +19,8 @@ var last_error: String = ""
 
 func _ready() -> void:
 	quest = JSON.parse_string(FileAccess.get_file_as_string("res://data/quests/forest_call.json"))
+	ruins_definition = JSON.parse_string(FileAccess.get_file_as_string("res://data/regions/ancient_ruins.json"))
+	ruins_quest = JSON.parse_string(FileAccess.get_file_as_string("res://data/quests/ancient_ruins.json"))
 	stone_definition = JSON.parse_string(FileAccess.get_file_as_string("res://data/items/ancient_stone.json"))
 	var keys := {"forward": KEY_W, "back": KEY_S, "left": KEY_A, "right": KEY_D, "run": KEY_SHIFT, "jump": KEY_SPACE, "interact": KEY_E, "inventory": KEY_I, "pause": KEY_ESCAPE, "save": KEY_F5, "load": KEY_F9, "camera_center": KEY_R}
 	for action: String in keys:
@@ -25,6 +32,7 @@ func _ready() -> void:
 
 func reset() -> void:
 	stage = 0
+	runes = []
 	inventory = {}
 	collected = []
 	regions = ["valley"]
@@ -32,20 +40,57 @@ func reset() -> void:
 	changed.emit()
 
 func objective() -> String:
-	if stage >= 2:
-		return "Passagem aberta! Explore a Floresta dos Sussurros."
-	if stage == 1:
-		return "Encontre as pedras antigas: %d / 3" % collected.size()
-	return str(quest.objectives[stage])
+	match stage:
+		0: return str(quest.objectives[0])
+		1: return "Encontre as pedras antigas: %d / 3" % collected.size()
+		5: return "Decifre as inscrições das ruínas: %d / 3" % runes.size()
+		6: return "Siga a trilha até a Árvore Ancestral."
+		7: return "Memórias reveladas! Explore o Vale da Fazenda."
+		_: return "Encontre as Ruínas Antigas na floresta."
 
 func completed_steps() -> int:
-	return 2 if stage >= 2 else stage
+	return int({0:0, 1:1, 2:2, 3:2, 4:2, 5:3, 6:4, 7:5}.get(stage,0))
+
+func ruins_journal() -> String:
+	var lines: PackedStringArray = []
+	for definition: Dictionary in ruins_definition.inscriptions:
+		if definition.id in runes:
+			lines.append(str(definition.name) + ": " + str(definition.text))
+	return "\n\n".join(lines)
+
+func active_quest_name() -> String:
+	return str(ruins_quest.name if stage >= 4 else quest.name)
+
+func enter_ruins() -> bool:
+	if stage != 4: return false
+	stage = 5
+	notice.emit("Ruínas Antigas • Aproxime-se das inscrições para decifrá-las")
+	changed.emit()
+	return true
+
+func read_inscription(id: String) -> bool:
+	if stage != 5 or not id in RUNE_IDS or id in runes: return false
+	runes.append(id)
+	if runes.size() == RUNE_IDS.size():
+		stage = 6
+		notice.emit("Inscrições decifradas • Siga a trilha da Árvore Ancestral")
+	else:
+		notice.emit("Memória das ruínas revelada • %d / 3" % runes.size())
+	changed.emit()
+	return true
+
+func reach_tree() -> bool:
+	if stage != 6: return false
+	stage = 7
+	notice.emit("Árvore Ancestral alcançada • As memórias do vale foram reveladas")
+	changed.emit()
+	return true
 
 func talk() -> String:
 	if stage == 0:
 		stage = 1
 		changed.emit()
-		return "Lia • Guardiã do vale\nTrês pedras antigas repousam perto do moinho, da oficina e da passagem norte. Reúna as três: a passagem da Floresta dos Sussurros se abrirá. Siga os objetivos da jornada."
+		return "Lia • Guardiã do vale\nTrês pedras antigas repousam perto do moinho, da oficina e da passagem norte. Reúna as três: a passagem da Floresta dos Sussurros se abrirá. Além da passagem, a trilha leva às Ruínas Antigas."
 	return "Lia • Guardiã do vale\n" + objective()
 
 func collect(id: String) -> bool:
@@ -76,7 +121,7 @@ func save_game(position: Vector3, silent: bool = false) -> bool:
 		last_error = "Não foi possível gravar o salvamento."
 		notice.emit(last_error)
 		return false
-	file.store_string(JSON.stringify({"version": 1, "stage": stage, "collected": collected, "inventory": inventory, "regions": regions, "position": [position.x, position.y, position.z]}))
+	file.store_string(JSON.stringify({"version": 2, "runes": runes, "stage": stage, "collected": collected, "inventory": inventory, "regions": regions, "position": [position.x, position.y, position.z]}))
 	file.close()
 	var error := DirAccess.rename_absolute(SAVE_PATH + ".tmp", SAVE_PATH)
 	if error != OK:
@@ -99,6 +144,7 @@ func load_game() -> bool:
 		notice.emit("Salvamento inválido ou incompatível; arquivo preservado.")
 		return false
 	stage = int(data.stage)
+	runes = data.get("runes", []).duplicate() if int(data.version) == 2 else []
 	collected = data.collected.duplicate()
 	inventory = data.inventory.duplicate()
 	regions = data.regions.duplicate()
@@ -112,12 +158,15 @@ func load_game() -> bool:
 	return true
 
 func valid_save(data: Variant) -> bool:
-	if not data is Dictionary or data.get("version") != 1:
+	if not data is Dictionary or not (data.get("version") is int or data.get("version") is float):
+		return false
+	var version: int = int(data.version)
+	if not version in [1,2] or float(version) != float(data.version):
 		return false
 	if not data.get("stage") is float and not data.get("stage") is int:
 		return false
 	var s: int = int(data.stage)
-	if s < 0 or s > 4 or float(s) != float(data.stage):
+	if float(s) != float(data.stage) or (int(data.version) == 1 and (s < 0 or s > 4)) or (int(data.version) == 2 and not s in [0,1,4,5,6,7]):
 		return false
 	if not data.get("collected") is Array or not data.get("inventory") is Dictionary or not data.get("regions") is Array or not data.get("position") is Array:
 		return false
@@ -130,8 +179,15 @@ func valid_save(data: Variant) -> bool:
 		return false
 	if (seen.is_empty() and not data.inventory.is_empty()) or (not seen.is_empty() and (data.inventory.size() != 1 or data.inventory.get("ancient_stone") != seen.size())):
 		return false
-	if data.regions != (["valley", "forest"] if s == 4 else ["valley"]):
+	if data.regions != (["valley", "forest"] if s >= 4 else ["valley"]):
 		return false
+	if int(data.version) == 2:
+		if not data.get("runes") is Array: return false
+		var seen_runes: Array = []
+		for id: Variant in data.runes:
+			if not id in RUNE_IDS or id in seen_runes: return false
+			seen_runes.append(id)
+		if (s < 5 and not seen_runes.is_empty()) or (s == 5 and seen_runes.size() >= 3) or (s >= 6 and seen_runes.size() != 3): return false
 	if data.position.size() != 3:
 		return false
 	for value: Variant in data.position:

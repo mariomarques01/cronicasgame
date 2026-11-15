@@ -14,27 +14,33 @@ reduções de geometria continuam compondo os controles e a base técnica.
 1. Uma única conversa com Lia inicia a missão.
 2. Cada pedra recolhida atualiza o contador e salva a jornada.
 3. A terceira pedra abre a passagem e libera a colisão automaticamente.
-4. O objetivo muda para explorar a Floresta dos Sussurros.
+4. O objetivo muda para encontrar as Ruínas Antigas na floresta.
 
 Lia não interrompe novamente a exploração nem serve de bloqueio entre objetivos.
-O mecanismo intermediário foi retirado. O HUD registra os dois objetivos da
-missão de abertura: apresentação e reunião das pedras. A exploração da floresta
-é a continuidade disponível depois da missão.
+O mecanismo intermediário foi retirado. A apresentação e a reunião das pedras são os dois primeiros objetivos; o HUD
+agora registra cinco metas com a descoberta das ruínas, a investigação e a
+chegada à árvore.
 
 Os saves existentes mantêm pedras, inventário e posição. Os estados antigos
 `2` (retorno a Lia) e `3` (mecanismo) migram em memória para `4` (passagem aberta),
-com a região da floresta liberada, antes de notificar a interface. O formato de
-save v1 permanece compatível. O salvamento automático usa o mesmo caminho e
+com a região da floresta liberada, antes de notificar a interface. Novos saves usam o formato v2;
+a leitura de v1 continua compatível. O salvamento automático usa o mesmo caminho e
 não substitui as mensagens de progresso por avisos de salvamento.
 
-## Próxima região definida
+## Ruínas Antigas implementadas
 
-**Ruínas Antigas**, conectada à floresta e ao caminho da Árvore Ancestral.
-A composição seguirá terreno caminhável, caminhos de pedra, arcos quebrados e
-vestígios de construções antigas. Sua construção é a próxima expansão; não faz
-parte da correção de missão e retirada das plataformas.
+A região fica a noroeste da floresta, ligada ao portão e ao caminho da Árvore
+Ancestral. Inclui pátio caminhável, arcos de alvenaria, paredes quebradas,
+escombros, pavimentação antiga e três inscrições. A jornada continua por
+proximidade: descoberta das ruínas → investigação das inscrições → chegada à
+árvore, com progresso salvo e sem novas conversas com Lia.
 
-## Próximas áreas do mapa — referência, ainda não construídas
+A marca azul no minimapa indica o objetivo atual. As memórias decifradas ficam
+nos detalhes da missão. A árvore continua sendo o marco visual existente; uma
+recriação visual completa da árvore do conceito não faz parte desta etapa.
+Veja [ancient-ruins.md](ancient-ruins.md) para implementação e validação.
+
+## Situação das demais áreas do mapa
 
 | Área | Direção para a expansão |
 | --- | --- |
@@ -43,13 +49,13 @@ parte da correção de missão e retirada das plataformas.
 | Rio, pontes e Lago do Vale | Formar uma rede natural de circulação, com margens e travessias coerentes. |
 | Cachoeira do Cristal | Marco de paisagem junto à continuidade do rio e às montanhas. |
 | Campo de Flores / Colinas do Vale | Áreas de exploração entre fazenda, vila e lago. |
-| Ruínas Antigas | Marco arquitetônico para uma próxima etapa da missão principal. |
-| Floresta dos Sussurros / Árvore Ancestral | Floresta densa e marco principal; o bloqueio da árvore receberá objetivos próprios quando esse trecho for construído. |
+| Ruínas Antigas | Implementadas nesta expansão, com investigação automática. |
+| Floresta dos Sussurros / Árvore Ancestral | A investigação já conduz ao marco existente. A recriação visual completa da árvore do conceito fica para uma etapa futura. |
 
 As posições relativas, os caminhos principais/secundários e as pedras antigas
 no mapa devem orientar a reorganização futura do mundo. O mapa conceitual não
-é exibido como se todas essas áreas já estivessem implementadas. Esta correção
-não constrói vila, lago, cachoeira ou novas ruínas.
+é exibido como se todas essas áreas já estivessem implementadas. Esta expansão
+não constrói vila, lago ou cachoeira.
 
 As próximas etapas devem avançar por objetivos cumpridos e descoberta de áreas,
 com progresso persistente. Conversas adicionais com Lia não devem virar

@@ -22,7 +22,7 @@ func run() -> void:
 	var world: Node3D = scene.instantiate()
 	root.add_child(world)
 	await physics_frame
-	for path in ["GoldenAcres/CozyTimberHouse", "GoldenAcres/FarmBuildings/Workshop", "GoldenAcres/FarmBuildings/Barn", "GoldenAcres/FarmBuildings/Windmill/SlowRotor", "Trees", "Lia/WolfCharacter", "LandingFeedback", "MeadowDetails", "ValleyAtmosphere/ValleyEnvironment"]:
+	for path in ["GoldenAcres/CozyTimberHouse", "GoldenAcres/FarmBuildings/Workshop", "GoldenAcres/FarmBuildings/Barn", "GoldenAcres/FarmBuildings/Windmill/SlowRotor", "Trees", "Lia/WolfCharacter", "LandingFeedback", "AncientRuins", "MeadowDetails", "ValleyAtmosphere/ValleyEnvironment"]:
 		check(world.get_node_or_null(path) != null, "Recurso exportado: " + path)
 	if failures > 0:
 		quit(1)
@@ -50,7 +50,7 @@ func run() -> void:
 	check(typeof(game.quest) == TYPE_DICTIONARY and game.quest.has("id"), "Dados JSON da missão incluídos")
 	world.start_game(false)
 	check(world.playing and world.player.enabled and not world.ui.title_screen.visible, "Jornada inicia a partir do pacote")
-	check(world.get_node("Trees").tree_count == 157, "Floresta externa reduzida pela metade")
+	check(world.get_node("Trees").tree_count > 120 and world.get_node("Trees").tree_count < 157, "Floresta mantém cobertura e libera as novas trilhas")
 	world.interact("lia")
 	world.ui.show_play()
 	for id in ["stone_0", "stone_1", "stone_2"]:
@@ -61,6 +61,20 @@ func run() -> void:
 	check(game.stage == 4 and game.regions == ["valley", "forest"], "Uma conversa e três pedras abrem passagem automaticamente")
 	await physics_frame
 	check(not world.gate.visible and world.gate.get_child(1).disabled, "Passagem exportada libera colisão sem mecanismo")
+	world.player.position = world.ground(-26,-74,.08)
+	world.player.velocity = Vector3.ZERO
+	for frame in 35: await physics_frame
+	check(game.stage == 5, "Área exportada inicia investigação ao entrar no pátio")
+	for id in ["roots","waters","light"]:
+		world.player.position = world.ruins.tablets[id] + Vector3(0,.08,1.5)
+		world.player.velocity = Vector3.ZERO
+		for frame in 80: await physics_frame
+		check(id in game.runes, "Inscrição exportada avança automaticamente: " + id)
+	check(game.stage == 6 and game.runes.size() == 3, "Pacote revela caminho da Árvore Ancestral")
+	world.player.position = world.ground(-3,-94,.08)
+	world.player.velocity = Vector3.ZERO
+	for frame in 40: await physics_frame
+	check(game.stage == 7, "Chegada à árvore conclui jornada no pacote exportado")
 	if not had_previous:
 		DirAccess.remove_absolute(game.SAVE_PATH)
 	else:
