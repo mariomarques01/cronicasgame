@@ -1013,6 +1013,9 @@ func check_automatic_quest(world: Node3D) -> void:
 		world.interact("stone_%d" % index)
 		var saved: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(game.SAVE_PATH))
 		check(saved.collected.size() == index + 1, "Coleta salva automaticamente pedra " + str(index + 1))
+		var progress_notice: String = world.ui.message.text
+		world.interact("stone_%d" % index)
+		check(world.ui.message.text == progress_notice, "Toque duplicado não pede nova conversa nem substitui progresso: " + str(index + 1))
 		if index < 2:
 			check(game.stage == 1 and world.gate.visible, "Passagem aguarda completar as três pedras")
 	game.changed.disconnect(observer)

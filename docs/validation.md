@@ -2,7 +2,7 @@
 
 ## Conversa única, avanço automático e direção do mapa
 
-**332 verificações aprovadas, zero falhas.** A terceira pedra abre passagem e colisão sem retorno a Lia ou mecanismo. A apresentação e as coletas são salvas automaticamente, preservando o anúncio da passagem aberta. Saves v1 nas etapas antigas 2/3 carregam como etapa 4, mantendo itens e posição. Lia não é mais alvo de interação após a apresentação. A trilha de plataformas e seus recursos foram retirados. O HUD mostra dois objetivos reais. Direção das próximas regiões em `docs/valley-map-direction.md`.
+**335 verificações aprovadas, zero falhas.** A terceira pedra abre passagem e colisão sem retorno a Lia ou mecanismo. A apresentação e as coletas são salvas automaticamente, preservando o anúncio da passagem aberta. Saves v1 nas etapas antigas 2/3 carregam como etapa 4, mantendo itens e posição. Lia não é mais alvo de interação após a apresentação. A trilha de plataformas e seus recursos foram retirados. O HUD mostra dois objetivos reais. Direção das próximas regiões em `docs/valley-map-direction.md`.
 
 As seções abaixo registram validações de entregas anteriores.
 
