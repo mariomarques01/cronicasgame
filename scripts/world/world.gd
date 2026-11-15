@@ -201,8 +201,10 @@ func interact(id: String) -> void:
 		if Game.collect(id):
 			get_node("LandingFeedback").on_collection(effect_position)
 			Game.save_game(player.position, true)
-		else:
+		elif Game.stage == 0:
 			ui.notify("Converse com Lia para investigar as pedras.")
+		elif not id in Game.collected:
+			ui.notify("Não foi possível recolher esta pedra.")
 
 func _process(delta: float) -> void:
 	if is_instance_valid(map_camera):
