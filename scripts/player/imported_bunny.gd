@@ -8,8 +8,6 @@ var air_time := 0.0
 var landing_time := 0.0
 var fall_delay := 0.0
 var locomotion_rate := 1.0
-var twirl_left := 0.0
-const TWIRL_DURATION := 0.65
 const TAKEOFF_TIME := 0.50
 const APEX_TIME := 0.78
 const CONTACT_TIME := 1.10
@@ -91,12 +89,6 @@ func animate(delta: float, moving: bool, running: bool, grounded: bool = true, v
 		animation_player.play(clip, 0.12)
 
 func animate_motion(delta: float, turn_rate: float, acceleration: float, grounded: bool) -> void:
-	if grounded:
-		twirl_left = 0.0
-	else:
-		twirl_left = maxf(0.0, twirl_left - delta)
-	var turn := smoothstep(0.0, 1.0, 1.0 - twirl_left / TWIRL_DURATION)
-	model.rotation.y = PI + TAU * turn if twirl_left > 0.0 else PI
 	# Small additive visual response; physics capsule and animation bones are untouched.
 	var weight := 1.0 - exp(-10.0 * delta)
 	var roll := clampf(-turn_rate * 0.012, -0.07, 0.07) if grounded else 0.0
@@ -104,11 +96,7 @@ func animate_motion(delta: float, turn_rate: float, acceleration: float, grounde
 	model.rotation.z = lerpf(model.rotation.z, roll, weight)
 	model.rotation.x = lerpf(model.rotation.x, lean, weight)
 
-func start_magic_twirl() -> void:
-	twirl_left = TWIRL_DURATION
-
 func reset_motion() -> void:
-	twirl_left = 0.0
 	model.rotation.y = PI
 	airborne = false
 	air_time = 0.0

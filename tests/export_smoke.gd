@@ -22,7 +22,7 @@ func run() -> void:
 	var world: Node3D = scene.instantiate()
 	root.add_child(world)
 	await physics_frame
-	for path in ["GoldenAcres/CozyTimberHouse", "GoldenAcres/FarmBuildings/Workshop", "GoldenAcres/FarmBuildings/Barn", "GoldenAcres/FarmBuildings/Windmill/SlowRotor", "Trees", "Lia/WolfCharacter", "LandingFeedback", "ForestTrail", "MeadowDetails", "ValleyAtmosphere/ValleyEnvironment"]:
+	for path in ["GoldenAcres/CozyTimberHouse", "GoldenAcres/FarmBuildings/Workshop", "GoldenAcres/FarmBuildings/Barn", "GoldenAcres/FarmBuildings/Windmill/SlowRotor", "Trees", "Lia/WolfCharacter", "LandingFeedback", "MeadowDetails", "ValleyAtmosphere/ValleyEnvironment"]:
 		check(world.get_node_or_null(path) != null, "Recurso exportado: " + path)
 	if failures > 0:
 		quit(1)
@@ -34,7 +34,7 @@ func run() -> void:
 	check(world.ui.ornament.minimap.viewport.world_3d == world.get_world_3d(), "Minimapa funcional incluído no pacote")
 	check(not ResourceLoader.exists("res://assets/models/bunny_animated.glb") and not ResourceLoader.exists("res://assets/models/Jumping.fbx"), "Personagens de alta densidade fora do pacote")
 	check(world.player.avatar.animation_player.has_animation("Jumping") and world.player.avatar.animation_player.has_animation("JumpLanding"), "Pulo e contato pré-processados presentes no pacote")
-	check(ResourceLoader.exists("res://assets/shaders/trail_energy.gdshader"), "Material de fogo e jade incluído no pacote")
+	check(not ResourceLoader.exists("res://scripts/world/forest_trail.gd") and world.get_node_or_null("ForestTrail") == null, "Trilha rejeitada fora do pacote")
 	check_texture_budget(world)
 	check(not ResourceLoader.exists("res://assets/models/golden_acres.glb"), "Pacote não inclui a fazenda original substituída")
 	check(not ResourceLoader.exists("res://assets/models/farm_without_fences.res"), "Malha antiga com pedras/flores fora do pacote")
@@ -45,18 +45,28 @@ func run() -> void:
 	var meadow: MeshInstance3D = world.get_node("GoldenAcres/FarmCollision/EmeraldMeadowGround")
 	check(meadow.material_override.get_shader_parameter("grass_tex").get_width() == 1024, "Nova grama exportada em 1024 px")
 	var game := root.get_node("Game")
+	var had_previous := FileAccess.file_exists(game.SAVE_PATH)
+	var previous := FileAccess.get_file_as_string(game.SAVE_PATH) if had_previous else ""
 	check(typeof(game.quest) == TYPE_DICTIONARY and game.quest.has("id"), "Dados JSON da missão incluídos")
 	world.start_game(false)
 	check(world.playing and world.player.enabled and not world.ui.title_screen.visible, "Jornada inicia a partir do pacote")
 	check(world.get_node("Trees").tree_count == 157, "Floresta externa reduzida pela metade")
-	game.talk()
+	world.interact("lia")
+	world.ui.show_play()
 	for id in ["stone_0", "stone_1", "stone_2"]:
 		var count_before: int = world.get_node("LandingFeedback").collection_count
 		world.interact(id)
 		check(id in game.collected, "Missão no pacote: " + id)
 		check(world.get_node("LandingFeedback").collection_count == count_before + 1, "Coleta no pacote dispara efeito: " + id)
-	game.talk()
-	check(game.activate_gate(), "Missão desbloqueia a passagem")
+	check(game.stage == 4 and game.regions == ["valley", "forest"], "Uma conversa e três pedras abrem passagem automaticamente")
+	await physics_frame
+	check(not world.gate.visible and world.gate.get_child(1).disabled, "Passagem exportada libera colisão sem mecanismo")
+	if not had_previous:
+		DirAccess.remove_absolute(game.SAVE_PATH)
+	else:
+		var file := FileAccess.open(game.SAVE_PATH, FileAccess.WRITE)
+		file.store_string(previous)
+		file.close()
 	print("PACK RESULTADO: ", failures, " falhas")
 	quit(0 if failures == 0 else 1)
 

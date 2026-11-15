@@ -19,7 +19,6 @@ var nearest: String = ""
 var map_camera: Camera3D
 var windmill: Node3D
 var crop_positions: Array[Dictionary] = []
-var forest_trail: Node3D
 
 func material(color: Color, glow: bool = false) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
@@ -89,10 +88,6 @@ func _ready() -> void:
 	landing_feedback.set_script(preload("res://scripts/player/landing_feedback.gd"))
 	landing_feedback.player = player
 	add_child(landing_feedback)
-	forest_trail = Node3D.new()
-	forest_trail.set_script(preload("res://scripts/world/forest_trail.gd"))
-	forest_trail.world = self
-	add_child(forest_trail)
 	map_camera = Camera3D.new()
 	map_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	map_camera.size = 112
@@ -146,8 +141,6 @@ func build_interactions() -> void:
 		add_target(id, "E • Recolher pedra antiga", ground(pos.x, pos.y, 1), "Pedra antiga")
 	gate = box(Vector3(9, 5, 0.8), ground(0, -52, 2.5), Color("655237"))
 	gate_mesh = gate.get_child(0)
-	box(Vector3(1.2, 2.4, 1.2), ground(7, -47, 1.2), Color("d8ba65"))
-	add_target("gate", "E • Ativar mecanismo", ground(7, -47, 1.2), "Mecanismo ancestral")
 
 func add_target(id: String, hint: String, pos: Vector3, title: String) -> void:
 	targets.append({"id": id, "hint": hint, "position": pos})
@@ -162,8 +155,6 @@ func add_target(id: String, hint: String, pos: Vector3, title: String) -> void:
 		label.reparent(stones[id], true)
 
 func sync_state() -> void:
-	if is_instance_valid(forest_trail):
-		forest_trail.visible = Game.stage == 4
 	for id: String in stones:
 		stones[id].visible = not id in Game.collected
 	var opened: bool = Game.stage == 4
@@ -188,13 +179,14 @@ func start_game(load_existing: bool) -> void:
 	# Older saves may put the player below the imported landscape.
 	player.position.y = maxf(player.position.y, terrain.height_at(player.position.x, player.position.z) + 1.0)
 	player.respawn_position = ground(-29, 33, 2)
-	forest_trail.reset()
 	playing = true
 	ui.show_play()
 	sync_state()
 
 func interact(id: String) -> void:
 	if id == "lia":
+		if Game.stage != 0:
+			return
 		var lia: StaticBody3D = get_node("Lia")
 		var direction := lia.global_position - player.global_position
 		player.velocity.x = 0
@@ -203,17 +195,14 @@ func interact(id: String) -> void:
 			player.avatar.rotation.y = atan2(-direction.x, -direction.z)
 		lia.face_toward(player.global_position)
 		ui.dialogue(Game.talk())
+		Game.save_game(player.position, true)
 	elif id.begins_with("stone_"):
 		var effect_position: Vector3 = stones[id].global_position if stones.has(id) else player.global_position
 		if Game.collect(id):
 			get_node("LandingFeedback").on_collection(effect_position)
+			Game.save_game(player.position, true)
 		else:
 			ui.notify("Converse com Lia para investigar as pedras.")
-	elif id == "gate":
-		if Game.activate_gate():
-			Game.save_game(player.position)
-		else:
-			ui.notify("O mecanismo aguarda as três pedras e a orientação de Lia.")
 
 func _process(delta: float) -> void:
 	if is_instance_valid(map_camera):
@@ -231,7 +220,7 @@ func _process(delta: float) -> void:
 	nearest = ""
 	var distance := 3.5
 	for target: Dictionary in targets:
-		if target.id in Game.collected or (target.id == "gate" and Game.stage == 4):
+		if target.id in Game.collected or (target.id == "lia" and Game.stage > 0):
 			continue
 		var d: float = player.position.distance_to(target.position)
 		if d < distance:

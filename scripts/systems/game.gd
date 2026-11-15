@@ -32,28 +32,21 @@ func reset() -> void:
 	changed.emit()
 
 func objective() -> String:
-	if stage == 4:
+	if stage >= 2:
 		return "Passagem aberta! Explore a Floresta dos Sussurros."
 	if stage == 1:
 		return "Encontre as pedras antigas: %d / 3" % collected.size()
 	return str(quest.objectives[stage])
 
+func completed_steps() -> int:
+	return 2 if stage >= 2 else stage
+
 func talk() -> String:
 	if stage == 0:
 		stage = 1
 		changed.emit()
-		return "Lia • Guardiã do vale
-Três pedras antigas repousam pelo vale. Procure seus brilhos azuis perto do moinho, da oficina e da passagem norte. Traga-as e revelarei a passagem."
-	if stage == 1:
-		return "Lia
-Siga os pilares de luz azul. Ainda faltam %d pedras." % (3 - collected.size())
-	if stage == 2:
-		stage = 3
-		changed.emit()
-		return "Lia
-As três marcas estão reunidas! Ative o obelisco dourado junto ao portão. A floresta reconhecerá você."
-	return "Lia
-A Árvore Ancestral espera além da passagem. Siga as marcas douradas para explorar também a Trilha dos Ventos: as pedras de fogo e jade impulsionam seus saltos."
+		return "Lia • Guardiã do vale\nTrês pedras antigas repousam perto do moinho, da oficina e da passagem norte. Reúna as três: a passagem da Floresta dos Sussurros se abrirá. Siga os objetivos da jornada."
+	return "Lia • Guardiã do vale\n" + objective()
 
 func collect(id: String) -> bool:
 	if stage != 1 or not id in ["stone_0", "stone_1", "stone_2"] or id in collected or inventory.size() >= capacity:
@@ -61,22 +54,23 @@ func collect(id: String) -> bool:
 	collected.append(id)
 	inventory["ancient_stone"] = collected.size()
 	if collected.size() == 3:
-		stage = 2
-	notice.emit("Pedra antiga encontrada • %d / 3" % collected.size())
-	changed.emit()
+		activate_gate()
+	else:
+		notice.emit("Pedra antiga encontrada • %d / 3" % collected.size())
+		changed.emit()
 	return true
 
 func activate_gate() -> bool:
-	if stage != 3:
+	if stage != 1 or collected.size() != 3:
 		return false
 	stage = 4
 	if not "forest" in regions:
 		regions.append("forest")
-	notice.emit("REGIÃO DESBLOQUEADA • Floresta dos Sussurros")
+	notice.emit("Três pedras reunidas • Passagem da Floresta dos Sussurros aberta")
 	changed.emit()
 	return true
 
-func save_game(position: Vector3) -> bool:
+func save_game(position: Vector3, silent: bool = false) -> bool:
 	var file := FileAccess.open(SAVE_PATH + ".tmp", FileAccess.WRITE)
 	if file == null:
 		last_error = "Não foi possível gravar o salvamento."
@@ -88,7 +82,8 @@ func save_game(position: Vector3) -> bool:
 	if error != OK:
 		notice.emit("Falha ao substituir salvamento: %d" % error)
 		return false
-	notice.emit("Jogo salvo")
+	if not silent:
+		notice.emit("Jogo salvo")
 	return true
 
 func load_game() -> bool:
@@ -107,6 +102,11 @@ func load_game() -> bool:
 	collected = data.collected.duplicate()
 	inventory = data.inventory.duplicate()
 	regions = data.regions.duplicate()
+	# Legacy saves waited for a second conversation or for the mechanism.
+	# The same three stones now unlock the forest immediately, before notifying UI.
+	if stage in [2, 3]:
+		stage = 4
+		regions = ["valley", "forest"]
 	player_position = Vector3(data.position[0], data.position[1], data.position[2])
 	changed.emit()
 	return true

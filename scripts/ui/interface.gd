@@ -205,7 +205,7 @@ func refresh() -> void:
 		objective.text = Game.objective()
 		if ornament != null:
 			ornament.refresh(self)
-		quest_progress.text = "Pedras antigas  %d / 3" % Game.collected.size() if Game.stage in [1, 2] else ("Passagem da floresta aberta" if Game.stage == 4 else "Explore e converse com Lia")
+		quest_progress.text = "Pedras antigas  %d / 3" % Game.collected.size() if Game.stage == 1 else ("Passagem da floresta aberta" if Game.stage == 4 else "Explore e converse com Lia")
 
 func dialogue(text: String) -> void:
 	clear_menu("O Chamado da Floresta")
@@ -236,9 +236,6 @@ func pause_menu() -> void:
 func settings_menu() -> void:
 	clear_menu("Configurações")
 	button("Pausar jogo", pause_menu)
-	button("Voltar ao marco", func():
-		world.player.return_to_checkpoint()
-		show_play())
 	button("Centralizar câmera", func():
 		show_play()
 		world.player.center_camera())
