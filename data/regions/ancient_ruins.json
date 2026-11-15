@@ -1,0 +1,170 @@
+{
+  "id": "ancient_ruins",
+  "name": "Ruínas Antigas",
+  "bounds": [
+    -40,
+    -96,
+    -12,
+    -68
+  ],
+  "floor_y": -0.65,
+  "mask_bounds": [
+    -52,
+    -112,
+    12,
+    -44
+  ],
+  "paths": [
+    {
+      "id": "ruins_approach",
+      "width": 3.6,
+      "points": [
+        [
+          0,
+          -52
+        ],
+        [
+          0,
+          -57
+        ],
+        [
+          -6,
+          -61
+        ],
+        [
+          -14,
+          -63
+        ],
+        [
+          -22,
+          -63.5
+        ],
+        [
+          -26,
+          -64
+        ],
+        [
+          -26,
+          -68
+        ],
+        [
+          -26,
+          -75
+        ]
+      ]
+    },
+    {
+      "id": "ruins_west",
+      "width": 2.4,
+      "points": [
+        [
+          -26,
+          -75
+        ],
+        [
+          -33,
+          -78
+        ],
+        [
+          -34,
+          -87
+        ]
+      ]
+    },
+    {
+      "id": "ruins_east",
+      "width": 2.4,
+      "points": [
+        [
+          -26,
+          -75
+        ],
+        [
+          -18,
+          -78
+        ],
+        [
+          -18,
+          -87
+        ]
+      ]
+    },
+    {
+      "id": "ruins_court",
+      "width": 2.4,
+      "points": [
+        [
+          -34,
+          -87
+        ],
+        [
+          -26,
+          -91
+        ],
+        [
+          -18,
+          -87
+        ]
+      ]
+    },
+    {
+      "id": "ancestral_approach",
+      "width": 3.2,
+      "points": [
+        [
+          -18,
+          -87
+        ],
+        [
+          -12,
+          -88
+        ],
+        [
+          -5,
+          -91
+        ],
+        [
+          -3,
+          -94
+        ]
+      ]
+    }
+  ],
+  "inscriptions": [
+    {
+      "id": "roots",
+      "name": "Raízes",
+      "position": [
+        -34,
+        -87
+      ],
+      "text": "As raízes guardam a memória do vale."
+    },
+    {
+      "id": "waters",
+      "name": "Águas",
+      "position": [
+        -18,
+        -87
+      ],
+      "text": "As águas unem a floresta, a fazenda e as colinas."
+    },
+    {
+      "id": "light",
+      "name": "Luz",
+      "position": [
+        -26,
+        -91
+      ],
+      "text": "A luz encontra caminho onde a memória é preservada."
+    }
+  ],
+  "entrance": [
+    -26,
+    -70
+  ],
+  "tree_goal": [
+    -3,
+    -94
+  ]
+}

@@ -19,6 +19,7 @@ var nearest: String = ""
 var map_camera: Camera3D
 var windmill: Node3D
 var crop_positions: Array[Dictionary] = []
+var ruins: Node3D
 
 func material(color: Color, glow: bool = false) -> StandardMaterial3D:
 	var mat := StandardMaterial3D.new()
@@ -88,13 +89,18 @@ func _ready() -> void:
 	landing_feedback.set_script(preload("res://scripts/player/landing_feedback.gd"))
 	landing_feedback.player = player
 	add_child(landing_feedback)
+	ruins = Node3D.new()
+	ruins.set_script(preload("res://scripts/world/ancient_ruins.gd"))
+	ruins.world = self
+	add_child(ruins)
 	map_camera = Camera3D.new()
 	map_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	map_camera.size = 112
 	map_camera.keep_aspect = Camera3D.KEEP_WIDTH
-	map_camera.position = Vector3(0, 105, 75)
+	map_camera.position = Vector3(0, 140, 90)
+	map_camera.far = 450
 	add_child(map_camera)
-	map_camera.look_at(Vector3(0, 0, -2))
+	map_camera.look_at(Vector3(0, 0, -22))
 	ui = CanvasLayer.new()
 	ui.set_script(UIScript)
 	ui.world = self
@@ -157,11 +163,13 @@ func add_target(id: String, hint: String, pos: Vector3, title: String) -> void:
 func sync_state() -> void:
 	for id: String in stones:
 		stones[id].visible = not id in Game.collected
-	var opened: bool = Game.stage == 4
+	var opened: bool = Game.stage >= 4
 	gate.visible = not opened
 	gate.get_child(1).set_deferred("disabled", opened)
 	if is_instance_valid(ui):
 		ui.refresh()
+	if is_instance_valid(ruins):
+		ruins.sync_progress()
 
 func toggle_map() -> void:
 	if map_camera.current:
@@ -208,7 +216,7 @@ func interact(id: String) -> void:
 
 func _process(delta: float) -> void:
 	if is_instance_valid(map_camera):
-		map_camera.size = maxf(112, 85 * get_viewport().get_visible_rect().size.aspect())
+		map_camera.size = maxf(146, 148 * get_viewport().get_visible_rect().size.aspect())
 	if not playing or not player.enabled:
 		return
 	if is_instance_valid(windmill):
@@ -230,9 +238,9 @@ func _process(delta: float) -> void:
 			nearest = target.id
 			ui.hint.text = target.hint
 	if nearest.is_empty():
-		ui.hint.text = ""
+		ui.hint.text = ruins.nearby_hint if is_instance_valid(ruins) else ""
 	if player.position.z < -57:
-		ui.region.text = "FLORESTA DOS SUSSURROS" if Game.stage == 4 else "VALE DA FAZENDA"
+		ui.region.text = ("RUÍNAS ANTIGAS" if is_instance_valid(ruins) and ruins.contains(player.position) else "FLORESTA DOS SUSSURROS") if Game.stage >= 4 else "VALE DA FAZENDA"
 	else:
 		ui.region.text = "VALE DA FAZENDA"
 	# Physical barrier also prevents jumping around the intended quest boundary.
@@ -245,3 +253,6 @@ func _process(delta: float) -> void:
 	if Input.is_action_just_pressed("load") and Game.load_game():
 		player.position = Game.player_position
 		player.position.y = maxf(player.position.y, terrain.height_at(player.position.x, player.position.z) + 1.0)
+
+func quest_goal() -> Vector3:
+	return ruins.goal_position() if is_instance_valid(ruins) else Vector3.INF

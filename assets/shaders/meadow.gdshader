@@ -3,6 +3,7 @@ uniform sampler2D grass_tex : source_color, repeat_enable, filter_linear_mipmap;
 uniform sampler2D dirt_tex : source_color, repeat_enable, filter_linear_mipmap;
 uniform sampler2D road_mask : repeat_disable, filter_linear;
 uniform vec4 road_bounds;
+uniform sampler2D ruins_mask : repeat_disable, filter_linear;
 varying vec3 world_pos;
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(vec2 p) {
@@ -15,7 +16,7 @@ void fragment() {
 	vec2 p = world_pos.xz;
 	vec2 road_uv = (p - road_bounds.xy) / road_bounds.zw;
 	// Keep the existing mask and circulation; break up its edges without moving roads.
-	float mask = texture(road_mask, road_uv).r;
+	float mask = max(texture(road_mask, road_uv).r, texture(ruins_mask, (p - vec2(-52.0,-112.0))/vec2(64.0,68.0)).r);
 	float path = smoothstep(0.08, 0.92, mask + (noise(p * 2.1) - 0.5) * 0.15);
 	float detail = dot(texture(grass_tex, p / 8.0).rgb, vec3(0.2126, 0.7152, 0.0722));
 	float broad = noise(p * 0.13) * 0.65 + noise(p * 0.37) * 0.35;

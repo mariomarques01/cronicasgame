@@ -1,5 +1,9 @@
 # Validação executada nesta entrega
 
+## Ruínas Antigas e sequência automática
+
+**370 verificações aprovadas, zero falhas.** Travessia real do portão às ruínas, leitura das três inscrições e caminho até a árvore; consultas de cápsula no centro e bordas das cinco trilhas sem obstruções. Pausa da leitura, diário, retomada intermediária, save v2 e carga de v1, rejeição de saves incoerentes e avisos compactos também cobertos. Arquitetura original de 10.852 triângulos; cenário total de 1.225.444. Conferência visual nativa da entrada e do pátio. Detalhes em `docs/ancient-ruins.md`.
+
 ## Conversa única, avanço automático e direção do mapa
 
 **335 verificações aprovadas, zero falhas.** A terceira pedra abre passagem e colisão sem retorno a Lia ou mecanismo. A apresentação e as coletas são salvas automaticamente, preservando o anúncio da passagem aberta. Saves v1 nas etapas antigas 2/3 carregam como etapa 4, mantendo itens e posição. Lia não é mais alvo de interação após a apresentação. A trilha de plataformas e seus recursos foram retirados. O HUD mostra dois objetivos reais. Direção das próximas regiões em `docs/valley-map-direction.md`.

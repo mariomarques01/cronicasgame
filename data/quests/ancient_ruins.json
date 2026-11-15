@@ -1,0 +1,7 @@
+{
+ "id":"ancient_ruins_memory",
+ "name":"As Memórias das Ruínas",
+ "objectives":["Encontre as Ruínas Antigas","Decifre as três inscrições","Siga o caminho da Árvore Ancestral"],
+ "prerequisites":["open_forest_gate"],
+ "completion_event":"reach_ancestral_tree"
+}

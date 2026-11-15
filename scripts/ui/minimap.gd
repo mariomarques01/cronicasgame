@@ -13,6 +13,7 @@ var capture_count := 0
 var map_material: ShaderMaterial
 var last_position := Vector2(INF, INF)
 var last_yaw := INF
+var last_goal := Vector3.INF
 
 class Compass extends Control:
 	var world: Node3D
@@ -23,6 +24,13 @@ class Compass extends Control:
 		for point: Vector2 in [Vector2(0, -8), Vector2(6, 6), Vector2(0, 3), Vector2(-6, 6)]:
 			points.append(center + point.rotated(-world.player.camera_yaw))
 		draw_colored_polygon(points, Color("ffe188"))
+		var goal: Vector3 = world.quest_goal()
+		if goal.is_finite():
+			var offset := Vector2(goal.x-world.player.position.x,goal.z-world.player.position.z)/92.0*size.x
+			if offset.length() > 2.0:
+				var point := center + offset.limit_length(size.x*.40)
+				draw_circle(point,4.5,Color("152b33"))
+				draw_circle(point,3.2,Color("8dc8ee"))
 		draw_string(ThemeDB.fallback_font, Vector2(center.x - 5, 15), "N", HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color("ffe4a1"))
 
 func _ready() -> void:
@@ -91,6 +99,11 @@ func _process(_delta: float) -> void:
 	if position.distance_squared_to(last_position) > 0.01:
 		map_material.set_shader_parameter("sample_center", Vector2.ONE * 0.5 + position / MAP_EXTENT)
 		last_position = position
+		overlay.queue_redraw()
 	if not is_finite(last_yaw) or absf(angle_difference(last_yaw, world.player.camera_yaw)) > 0.003:
 		overlay.queue_redraw()
 		last_yaw = world.player.camera_yaw
+	var goal: Vector3 = world.quest_goal()
+	if goal != last_goal:
+		last_goal = goal
+		overlay.queue_redraw()

@@ -59,9 +59,9 @@ Abra `project.godot` na Godot 4.6.3 e pressione **F6** na cena principal ou **F5
 
 A câmera usa órbita de terceira pessoa: mouse ou arrasto giram ao redor do personagem com suavização, sensibilidade reduzida e horizonte nivelado. A inclinação fica entre 8° e 55° para baixo, impedindo passar por baixo do personagem. O acompanhamento vertical amortece os saltos; colisões aproximam a câmera de obstáculos. O mapa aéreo bloqueia o giro da câmera do personagem.
 
-Converse uma vez com **Lia**, perto da casa. Recolha os três objetos com pilares azuis: perto do moinho, da oficina e da passagem norte. Ao recolher a terceira pedra, a passagem abre automaticamente e o objetivo passa a explorar a Floresta dos Sussurros. A primeira conversa e cada coleta salvam o progresso; o salvamento manual continua disponível. As próximas áreas seguem a [direção do mapa de referência](docs/valley-map-direction.md).
+Converse uma vez com **Lia**, perto da casa. Recolha os três objetos com pilares azuis: perto do moinho, da oficina e da passagem norte. Ao recolher a terceira pedra, a passagem abre automaticamente e o objetivo passa a explorar a Floresta dos Sussurros. A primeira conversa e cada coleta salvam o progresso; o salvamento manual continua disponível. A trilha de terra depois da passagem leva às **Ruínas Antigas**. Entre no pátio e pare perto das três inscrições para decifrá-las; as memórias lidas ficam nos detalhes da missão. Depois, siga a marca azul no minimapa até a Árvore Ancestral. Os objetivos avançam e salvam automaticamente, sem novas conversas com Lia. [Detalhes da região](docs/ancient-ruins.md).
 
-`user://eldervale_v1.json` guarda posição, inventário, pedras, etapa da missão e região desbloqueada. No navegador, o armazenamento é local ao navegador/origem; use o mesmo endereço e permita armazenamento persistente. Não remova os dados do site para manter o progresso.
+`user://eldervale_v1.json` guarda posição, inventário, pedras, inscrições, etapa da missão e região desbloqueada. O arquivo mantém o nome anterior; o formato v2 aceita saves v1 e preserva seu progresso. No navegador, o armazenamento é local ao navegador/origem; use o mesmo endereço e permita armazenamento persistente. Não remova os dados do site para manter o progresso.
 
 ## Web / GitHub Pages
 
