@@ -1175,3 +1175,10 @@ func check_ancient_ruins(world: Node3D) -> void:
 	world.ui.notify("Inscrições decifradas • Siga a trilha da Árvore Ancestral")
 	for frame in 12:await process_frame
 	check(world.ui.message.size.y < 120, "Avisos com quebra de linha mantêm altura compacta")
+	world.toggle_map()
+	for frame in 3:await process_frame
+	var overview_covers := true
+	for point: Vector3 in [Vector3(-40,-.65,-96),Vector3(-12,-.65,-68),Vector3(-29,.1,33),Vector3(0,24,-94)]:
+		overview_covers = overview_covers and world.map_camera.is_position_in_frustum(point)
+	check(overview_covers, "Mapa aéreo enquadra fazenda, ruínas e Árvore Ancestral")
+	world.player.center_camera()

@@ -97,9 +97,10 @@ func _ready() -> void:
 	map_camera.projection = Camera3D.PROJECTION_ORTHOGONAL
 	map_camera.size = 112
 	map_camera.keep_aspect = Camera3D.KEEP_WIDTH
-	map_camera.position = Vector3(0, 105, 75)
+	map_camera.position = Vector3(0, 140, 90)
+	map_camera.far = 450
 	add_child(map_camera)
-	map_camera.look_at(Vector3(0, 0, -2))
+	map_camera.look_at(Vector3(0, 0, -22))
 	ui = CanvasLayer.new()
 	ui.set_script(UIScript)
 	ui.world = self
@@ -215,7 +216,7 @@ func interact(id: String) -> void:
 
 func _process(delta: float) -> void:
 	if is_instance_valid(map_camera):
-		map_camera.size = maxf(112, 85 * get_viewport().get_visible_rect().size.aspect())
+		map_camera.size = maxf(146, 148 * get_viewport().get_visible_rect().size.aspect())
 	if not playing or not player.enabled:
 		return
 	if is_instance_valid(windmill):

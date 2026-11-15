@@ -47,7 +47,7 @@ inválidos não alteram o estado atual nem são sobrescritos durante a validaç�
 
 ## Validação
 
-369 verificações de integração aprovadas. O controlador real percorreu do portão
+370 verificações de integração aprovadas. O controlador real percorreu do portão
 às ruínas, entre as inscrições e até a árvore, sem teletransportes entre pontos
 da rota. Centro e bordas dos cinco caminhos foram consultados com a cápsula real,
 sem colisões obstruindo a passagem. Os testes cobrem pausa da leitura, progresso

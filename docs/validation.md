@@ -2,7 +2,7 @@
 
 ## Ruínas Antigas e sequência automática
 
-**369 verificações aprovadas, zero falhas.** Travessia real do portão às ruínas, leitura das três inscrições e caminho até a árvore; consultas de cápsula no centro e bordas das cinco trilhas sem obstruções. Pausa da leitura, diário, retomada intermediária, save v2 e carga de v1, rejeição de saves incoerentes e avisos compactos também cobertos. Arquitetura original de 10.852 triângulos; cenário total de 1.225.444. Conferência visual nativa da entrada e do pátio. Detalhes em `docs/ancient-ruins.md`.
+**370 verificações aprovadas, zero falhas.** Travessia real do portão às ruínas, leitura das três inscrições e caminho até a árvore; consultas de cápsula no centro e bordas das cinco trilhas sem obstruções. Pausa da leitura, diário, retomada intermediária, save v2 e carga de v1, rejeição de saves incoerentes e avisos compactos também cobertos. Arquitetura original de 10.852 triângulos; cenário total de 1.225.444. Conferência visual nativa da entrada e do pátio. Detalhes em `docs/ancient-ruins.md`.
 
 ## Conversa única, avanço automático e direção do mapa
 
