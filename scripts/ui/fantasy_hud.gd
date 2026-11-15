@@ -95,7 +95,7 @@ func build(ui: CanvasLayer) -> void:
 	player_name = make_label(ui, profile, "Explorador", 20)
 	player_name.add_theme_font_override("font", ui.DISPLAY_FONT)
 	progress = ProgressBar.new()
-	progress.max_value = 4
+	progress.max_value = 2
 	progress.show_percentage = false
 	progress.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var bar := StyleBoxFlat.new()
@@ -175,15 +175,13 @@ func refresh(ui: CanvasLayer) -> void:
 	var game: Node = ui.world.get_node("/root/Game")
 	stone_count.text = "%d / 3" % game.collected.size()
 	region_count.text = "%d / 2" % game.regions.size()
-	progress.value = game.stage
-	progress_text.text = "Missão  %d / 4 etapas" % game.stage
+	progress.value = game.completed_steps()
+	progress_text.text = "Missão  %d / 2 objetivos" % game.completed_steps()
 	bag_badge.text = str(int(game.inventory.get("ancient_stone", 0)))
 	bag_badge.visible = not game.inventory.is_empty()
 	match game.stage:
 		0: quest_summary.text = "Converse com Lia"
 		1: quest_summary.text = "Pedras antigas: %d / 3" % game.collected.size()
-		2: quest_summary.text = "Leve as pedras a Lia"
-		3: quest_summary.text = "Ative o mecanismo"
 		_: quest_summary.text = "Explore a floresta"
 
 func layout(ui: CanvasLayer, screen: Vector2) -> void:

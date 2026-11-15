@@ -195,7 +195,7 @@ func _physics_process(delta: float) -> void:
 	position.x = clampf(position.x, -125, 125)
 	position.z = clampf(position.z, -125, 125)
 	if position.y < -25:
-		return_to_checkpoint()
+		recover_to_spawn()
 
 func try_small_step(motion: Vector3) -> void:
 	if motion.length_squared() < 0.000001:
@@ -224,18 +224,7 @@ func try_small_step(motion: Vector3) -> void:
 	if lift > 0.01 and lift <= STEP_HEIGHT:
 		global_position.y += lift + 0.002
 
-func launch(speed: float) -> void:
-	if not enabled:
-		return
-	velocity.y = clampf(speed, JUMP_SPEED, 14.0)
-	avatar.start_magic_twirl()
-	_coyote_left = 0.0
-	_jump_buffer_left = 0.0
-	_variable_jump_active = false
-	_jump_cut_done = true
-	jumped.emit()
-
-func return_to_checkpoint() -> void:
+func recover_to_spawn() -> void:
 	position = respawn_position
 	velocity = Vector3.ZERO
 	movement_speed = 0.0

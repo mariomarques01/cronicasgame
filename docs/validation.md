@@ -1,5 +1,11 @@
 # Validação executada nesta entrega
 
+## Conversa única, avanço automático e direção do mapa
+
+**332 verificações aprovadas, zero falhas.** A terceira pedra abre passagem e colisão sem retorno a Lia ou mecanismo. A apresentação e as coletas são salvas automaticamente, preservando o anúncio da passagem aberta. Saves v1 nas etapas antigas 2/3 carregam como etapa 4, mantendo itens e posição. Lia não é mais alvo de interação após a apresentação. A trilha de plataformas e seus recursos foram retirados. O HUD mostra dois objetivos reais. Direção das próximas regiões em `docs/valley-map-direction.md`.
+
+As seções abaixo registram validações de entregas anteriores.
+
 ## Controles de terceira pessoa e referência SuperMak64/REA
 
 **270 verificações aprovadas, zero falhas.** Analógico gradual, aceleração/frenagem, movimento relativo à câmera, passos de animação proporcionais à velocidade, tolerância e buffer de salto, joystick flutuante, câmera por segundo dedo e pulo por terceiro. Degraus baixos são transpostos sem salto e obstáculos altos permanecem bloqueados. Poeira de aterrissagem responde ao contato real e respeita a pausa; Lia e o jogador se orientam na conversa sem deslocar suas colisões. Os testes físicos em DPR 1/2/3 conferem também a sensibilidade da câmera. Estudo do SuperMak64 com REA 6.9.0, inventário do ZIP e extração seletiva com integridade verificada documentados em `docs/third-person-controls.md`. Sem execução do SuperMak64 original ou teste em celular físico neste ambiente.
